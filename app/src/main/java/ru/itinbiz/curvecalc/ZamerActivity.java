@@ -214,7 +214,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         plot.setDomainLabel("X");
         plot.setDomainStep(StepMode.INCREMENT_BY_PIXELS,30);
         plot.setRangeStep(StepMode.INCREMENT_BY_PIXELS,50);
-        PanZoom.attach(plot, PanZoom.Pan.HORIZONTAL, PanZoom.Zoom.SCALE);
+        PanZoom.attach(plot, PanZoom.Pan.BOTH, PanZoom.Zoom.SCALE);
         calculateDifference();
         createListPoint();
         addButton.setOnClickListener(new View.OnClickListener() {
