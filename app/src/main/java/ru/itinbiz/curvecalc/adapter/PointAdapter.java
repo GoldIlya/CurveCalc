@@ -49,7 +49,12 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         }else{
             diff = "";
         }
-        holder.tvPoint.setText(pointY+" "+pointX);
+        boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
+        if(isInteger){
+            holder.tvPoint.setText(pointY+" "+pointX);
+        }else {
+            holder.tvPoint.setText("- "+pointX);
+        }
     }
 
     @Override
@@ -68,7 +73,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String number = String.valueOf(Math.round(dataSet.getY(getAdapterPosition()).floatValue()));
+                    String number = String.valueOf(dataSet.getY(getAdapterPosition()).floatValue());
                     String value = String.valueOf(Math.round(dataSet.getX(getAdapterPosition()).floatValue()));
                     int index = getAdapterPosition();
                     onItemClickListener.onItemClick(number, value, index);

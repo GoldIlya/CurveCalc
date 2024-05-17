@@ -1,6 +1,7 @@
 package ru.itinbiz.curvecalc.adapter;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -64,9 +66,23 @@ public class ZamerAdapter extends RecyclerView.Adapter<ZamerAdapter.ZamerViewHol
                 public void onClick(View v) {
                     Measurement oMeasurement = measurementList.get(getAdapterPosition());
                     int measurementId = oMeasurement.getId();
-                    deleteMeasurement(measurementId);
-                    Intent intent = new Intent(mCtx, MainActivity.class);
-                    mCtx.startActivity(intent);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mCtx);
+                    builder.setTitle("Вы действительно хотите удалить?");
+                    builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            deleteMeasurement(measurementId);
+                            Intent intent = new Intent(mCtx, MainActivity.class);
+                            mCtx.startActivity(intent);
+                        }
+                    });
+                    builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                        }
+                    });
+                    AlertDialog ad = builder.create();
+                    ad.show();
                 }
             });
 

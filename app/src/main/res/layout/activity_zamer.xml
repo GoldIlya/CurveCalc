@@ -26,8 +26,8 @@
                 android:id="@+id/series_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginStart="5dp"
+                android:layout_marginBottom="5dp" />
 
             <Button
                 android:id="@+id/next_button"
@@ -35,6 +35,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:text=">" />
+
+            <Button
+                android:id="@+id/create_new_series_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="+" />
 
         </LinearLayout>
 
@@ -60,17 +67,11 @@
                         android:id="@+id/listPoint"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:layout_margin="10dp"
                         android:layout_weight="3" />
 
 
                 </LinearLayout>
-
-                <Button
-                    android:id="@+id/create_new_series_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:text="+" />
 
                 <Button
                     android:id="@+id/clearListPoint"
@@ -98,10 +99,10 @@
                 android:layout_weight="1.5"
                 ap:domainTitle="domain"
                 ap:lineLabels="left|bottom"
-                ap:marginBottom="20dp"
-                ap:marginLeft="20dp"
-                ap:marginRight="20dp"
-                ap:marginTop="20dp"
+                ap:marginBottom="10dp"
+                ap:marginLeft="10dp"
+                ap:marginRight="10dp"
+                ap:marginTop="10dp"
                 ap:rangeTitle="range"
                 ap:title="Промер кривой"
                 ap:titleTextColor="@color/black" />
@@ -147,7 +148,7 @@
 
                 <LinearLayout
                     android:id="@+id/blockSdvig"
-                    android:layout_width="185dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:visibility="gone">
@@ -220,7 +221,7 @@
 
                 <LinearLayout
                     android:id="@+id/blockEdit"
-                    android:layout_width="185dp"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:visibility="gone">

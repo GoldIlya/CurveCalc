@@ -10,7 +10,7 @@ public class Measurement {
     private int id;
     private String name;
     private String measurementUnit;
-    private int countPoint;
+    private double countPoint;
     private int countSeries;
     private String seriesListJson; // Save the seriesList as a JSON string
 
@@ -32,11 +32,11 @@ public class Measurement {
 
     public void setMeasurementUnit(String measurementUnit) {this.measurementUnit = measurementUnit;}
 
-    public int getCountPoint() {
+    public double getCountPoint() {
         return countPoint;
     }
 
-    public void setCountPoint(int countPoint) {
+    public void setCountPoint(double countPoint) {
         this.countPoint = countPoint;
     }
 

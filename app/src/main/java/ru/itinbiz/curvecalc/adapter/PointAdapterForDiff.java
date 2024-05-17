@@ -45,14 +45,25 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
         String pointX =  String.valueOf(dataSet.getX(position).floatValue());
         String pointY = String.valueOf(resultY);
         String diff;
+        boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
+
         if(diffSet.size()>0){
             diff = String.valueOf(diffSet.getX(position).floatValue());
         }else{
             diff = "";
         }
-        holder.tvPoint.setText(pointY+" "+pointX+" "+diff);
+        if (isInteger){
+            holder.tvPoint.setText(pointY+" "+pointX+" "+diff);
+        }else{
+            holder.tvPoint.setText("- "+pointX+" "+diff);
+        }
+
         if(!diff.equals("0.0")){
-            holder.tvPoint.setTextColor(mCtx.getResources().getColor(R.color.green));
+            if(isInteger){
+                holder.tvPoint.setTextColor(mCtx.getResources().getColor(R.color.green));
+            }else {
+                holder.tvPoint.setTextColor(mCtx.getResources().getColor(R.color.blue));
+            }
         }
 
     }
@@ -73,7 +84,7 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String number = String.valueOf(Math.round(dataSet.getY(getAdapterPosition()).floatValue()));
+                    String number = String.valueOf(dataSet.getY(getAdapterPosition()).floatValue());
                     String value = String.valueOf(dataSet.getX(getAdapterPosition()).floatValue());
                     int index = getAdapterPosition();
                     onItemClickListener.onItemClick(number, value, index);
