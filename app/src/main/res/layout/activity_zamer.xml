@@ -5,6 +5,8 @@
     xmlns:ap="http://schemas.android.com/apk/res-auto"
     tools:context=".ZamerActivity">
 
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,7 +20,7 @@
 
             <Button
                 android:id="@+id/prev_button"
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="&lt;" />
 
@@ -31,7 +33,7 @@
 
             <Button
                 android:id="@+id/next_button"
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:text=">" />
@@ -93,19 +95,15 @@
 
             <com.androidplot.xy.XYPlot
                 android:id="@+id/plot"
-                style="@style/APDefacto.Light"
+                style="@style/FullScreenGraph"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                ap:gridBackgroundColor = "@color/white"
                 android:layout_weight="1.5"
-                ap:domainTitle="domain"
-                ap:lineLabels="left|bottom"
-                ap:marginBottom="10dp"
-                ap:marginLeft="10dp"
-                ap:marginRight="10dp"
-                ap:marginTop="10dp"
-                ap:rangeTitle="range"
-                ap:title="Промер кривой"
-                ap:titleTextColor="@color/black" />
+                ap:domainOriginLineColor="@color/ap_transparent"
+                ap:rangeOriginLineColor="@color/ap_transparent"
+                ap:titleTextColor="@color/black"
+                android:rotationX="180"/>
         </LinearLayout>
 
         <LinearLayout

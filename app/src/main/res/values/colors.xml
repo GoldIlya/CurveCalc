@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
     <color name="red">#BC0000</color>
     <color name="green">#0CBA3D</color>
     <color name="blue">#305EE8</color>
+    <color name="selected_item_background">#FFD5D5D5</color>
+    <color name="white">#FFFFFFFF</color>
 </resources>

@@ -6,7 +6,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
+import android.graphics.Paint;
+import android.graphics.PointF;
+import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputType;
@@ -28,10 +32,13 @@ import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.androidplot.ui.SeriesRenderer;
 import com.androidplot.util.PixelUtils;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
+import com.androidplot.xy.LineAndPointRenderer;
 import com.androidplot.xy.PanZoom;
+import com.androidplot.xy.PointLabelFormatter;
 import com.androidplot.xy.PointLabeler;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.StepMode;
@@ -96,9 +103,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
 
-
-
-
         plot = findViewById(R.id.plot);
         seriesSpinner = findViewById(R.id.series_spinner);
         addButton = findViewById(R.id.addButton);
@@ -130,7 +134,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
 
         recyclerView = findViewById(R.id.listPoint);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         if(getIntent().getSerializableExtra("measurementId")!= null){
             final int measurementId = (int) getIntent().getSerializableExtra("measurementId");
@@ -180,9 +184,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             @Override
             public String getLabel(XYSeries curSeries, int index) {
                 return "";
-
             }
         });
+
 
         seriesFormatInt = new LineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
         seriesFormatInt.setPointLabeler(new PointLabeler() {
@@ -214,7 +218,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         });
 
 
-        seriesFormatPromerInt = new LineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
+        seriesFormatPromerInt = new MyLineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
         seriesFormatPromerInt.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeriesInt, int index) {
@@ -227,9 +231,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         });
 
-        seriesFormatPromerDouble = new LineAndPointFormatter(this, R.xml.linepunktir_point_formatter_with_labels);
+        seriesFormatPromerDouble = new MyLineAndPointFormatter(this, R.xml.linepunktir_point_formatter_with_labels);
+
         seriesFormatPromerDouble.setPointLabeler(new PointLabeler() {
             @Override
+
             public String getLabel(XYSeries curSeriesDouble, int index) {
                 if(calculateDiffDouble().getX(index).floatValue() == 0.0){
                     return "";
@@ -238,6 +244,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
         });
+
+
+
 
         seriesFormatDouble.getLinePaint().setPathEffect(new DashPathEffect(new float[] {
                 // always use DP when specifying pixel sizes, to keep things consistent across devices:
@@ -248,6 +257,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 // always use DP when specifying pixel sizes, to keep things consistent across devices:
                 PixelUtils.dpToPix(10),
                 PixelUtils.dpToPix(5)}, 0));
+
 
 
         pointFormat = new LineAndPointFormatter(this, R.xml.formatter_point);
@@ -293,10 +303,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         }
 
-
         // Set the plot's properties
         plot.setRangeLabel("Y");
         plot.setDomainLabel("X");
+
         plot.setDomainStep(StepMode.INCREMENT_BY_PIXELS,30);
         plot.setRangeStep(StepMode.INCREMENT_BY_PIXELS,50);
         PanZoom.attach(plot, PanZoom.Pan.BOTH, PanZoom.Zoom.SCALE);
@@ -954,6 +964,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
     }
 
+
+
     private long saveDataToDatabase() {
         class SaveDataToDatabase extends AsyncTask<Void, Void, Long> {
             @Override
@@ -1350,6 +1362,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         finish();
     }
 
+
+
+
  public void pointAndDoublePoint(){
      curSeriesInt.clear();
      curSeriesDouble.clear();
@@ -1383,5 +1398,72 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
      }
      plot.redraw();
  }
+
+}
+
+/**
+ * A LineAndPointRenderer that rotates it's point labels -90 degrees.
+ */
+class MyLineAndPointRenderer extends LineAndPointRenderer<MyLineAndPointFormatter> {
+
+    public MyLineAndPointRenderer(XYPlot plot) {
+        super(plot);
+    }
+
+    // Basically just copy the entire renderPoints implementation and add a rotation as shown below
+    @Override
+    protected void renderPoints(Canvas canvas, RectF plotArea, XYSeries series, int iStart, int iEnd, List<PointF> points,
+                                LineAndPointFormatter formatter) {
+        if (formatter.hasVertexPaint() || formatter.hasPointLabelFormatter()) {
+            final Paint vertexPaint = formatter.hasVertexPaint() ? formatter.getVertexPaint() : null;
+            final boolean hasPointLabelFormatter = formatter.hasPointLabelFormatter();
+            final PointLabelFormatter plf = hasPointLabelFormatter ? formatter.getPointLabelFormatter() : null;
+            final PointLabeler pointLabeler = hasPointLabelFormatter ? formatter.getPointLabeler() : null;
+            for(int i = iStart; i < iEnd; i++) {
+                PointF p = points.get(i);
+                if(p != null) {
+
+                    if (vertexPaint != null) {
+                        canvas.drawPoint(p.x, p.y, vertexPaint);
+                    }
+
+                    if (pointLabeler != null) {
+                        // this is where we rotate the text:
+                        final int canvasState = canvas.save();
+                        try {
+                            canvas.rotate(180, p.x, p.y);
+                            canvas.scale(-1, 1);
+                            canvas.drawText(pointLabeler.getLabel(series, i),
+                                    -p.x + plf.hOffset, p.y + plf.vOffset, plf.getTextPaint());
+                        } finally {
+                            canvas.restoreToCount(canvasState);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+class MyLineAndPointFormatter extends LineAndPointFormatter {
+
+    // if you dont use configurator you can omit this constructor.  this example uses it
+    // tho so here it is.
+    public MyLineAndPointFormatter(Context context, int xmlCfgId) {
+        super(context, xmlCfgId);
+    }
+
+    @Override
+    public Class<? extends SeriesRenderer> getRendererClass() {
+        return MyLineAndPointRenderer.class;
+    }
+
+    @Override
+    public SeriesRenderer doGetRendererInstance(XYPlot plot) {
+        return new MyLineAndPointRenderer(plot);
+    }
+
+
 
 }

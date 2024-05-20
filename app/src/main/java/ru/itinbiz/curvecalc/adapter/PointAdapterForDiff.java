@@ -53,16 +53,24 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
             diff = "";
         }
         if (isInteger){
-            holder.tvPoint.setText(pointY+" "+pointX+" "+diff);
+            holder.tvNumber.setText(pointY+" ");
+            holder.tvZnach.setText(pointX+" ");
+            holder.tvDiff.setText(diff);
         }else{
-            holder.tvPoint.setText("- "+pointX+" "+diff);
+            holder.tvNumber.setText("- ");
+            holder.tvZnach.setText(pointX+" ");
+            holder.tvDiff.setText(diff);
         }
 
         if(!diff.equals("0.0")){
             if(isInteger){
-                holder.tvPoint.setTextColor(mCtx.getResources().getColor(R.color.green));
+                holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.green));
+                holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.green));
+                holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.green));
             }else {
-                holder.tvPoint.setTextColor(mCtx.getResources().getColor(R.color.blue));
+                holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.blue));
+                holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.blue));
+                holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.blue));
             }
         }
 
@@ -75,12 +83,14 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
 
     class PointViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvPoint;
+        TextView tvNumber, tvZnach, tvDiff;
         public PointViewHolder(View itemView) {
 
             super(itemView);
 
-            tvPoint = itemView.findViewById(R.id.textView);
+            tvNumber = itemView.findViewById(R.id.tvNumber);
+            tvZnach = itemView.findViewById(R.id.tvZnach);
+            tvDiff = itemView.findViewById(R.id.tvDiff);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

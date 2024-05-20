@@ -6,4 +6,5 @@
     vertexPaint.strokeWidth="6dp"
     fillPaint.color="#00000000"
     pointLabelFormatter.textPaint.color="#100A0A"
-    pointLabelFormatter.textPaint.textSize="16dp" />
+    pointLabelFormatter.textPaint.textSize="16dp"
+    />

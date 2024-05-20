@@ -51,9 +51,12 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         }
         boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
         if(isInteger){
-            holder.tvPoint.setText(pointY+" "+pointX);
+            holder.tvNumber.setText(pointY);
+            holder.tvZnach.setText(" "+pointX);
         }else {
-            holder.tvPoint.setText("- "+pointX);
+            holder.tvNumber.setText("- ");
+            holder.tvZnach.setText(pointX);
+
         }
     }
 
@@ -64,12 +67,14 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
     class PointViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvPoint;
+        TextView tvNumber, tvZnach, tvDiff;
         public PointViewHolder(View itemView) {
 
             super(itemView);
 
-            tvPoint = itemView.findViewById(R.id.textView);
+            tvNumber = itemView.findViewById(R.id.tvNumber);
+            tvZnach = itemView.findViewById(R.id.tvZnach);
+            tvDiff = itemView.findViewById(R.id.tvDiff);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
