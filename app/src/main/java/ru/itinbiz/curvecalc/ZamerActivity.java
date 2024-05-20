@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,6 +48,7 @@ import com.androidplot.xy.XYSeries;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +78,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private int countSeries = 0;
 
     private LinearLayout blockSdvig, blockSeries, blockEdit, blockAddPoint;
-    private Button addButton, btnPlus, btnMinus, createNewSeriesButton, prevButton, nextButton, appEdit, clearListPoint, resetChanges;
+    private Button addButton, btnPlus, btnMinus, createNewSeriesButton, prevButton, nextButton, appEdit, clearListPoint, resetChanges, btnTable;
     private EditText xCoordinateEditText, valueSet;
     private TextView countTextView;
     private Spinner seriesSpinner;
@@ -103,6 +105,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
 
+
         plot = findViewById(R.id.plot);
         seriesSpinner = findViewById(R.id.series_spinner);
         addButton = findViewById(R.id.addButton);
@@ -116,6 +119,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         createNewSeriesButton = findViewById(R.id.create_new_series_button);
         clearListPoint = findViewById(R.id.clearListPoint);
         resetChanges = findViewById(R.id.resetChange);
+        btnTable = findViewById(R.id.btnTable);
         blockSdvig = findViewById(R.id.blockSdvig);
         blockSeries = findViewById(R.id.blockSeries);
         blockEdit = findViewById(R.id.blockEdit);
@@ -179,7 +183,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         curSeries = seriesList.get(0);
 
         // Создаём разные форматы для отображения на графике
-        seriesFormat = new LineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
+        seriesFormat = new MyLineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
         seriesFormat.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeries, int index) {
@@ -188,7 +192,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         });
 
 
-        seriesFormatInt = new LineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
+        seriesFormatInt = new MyLineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
         seriesFormatInt.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeriesInt, int index) {
@@ -197,7 +201,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         });
 
 
-        seriesFormatDouble = new LineAndPointFormatter(this, R.xml.linepunktir_point_formatter_with_labels);
+        seriesFormatDouble = new MyLineAndPointFormatter(this, R.xml.linepunktir_point_formatter_with_labels);
         seriesFormatDouble.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeriesDouble, int index) {
@@ -205,7 +209,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         });
 
-        seriesFormatPromer = new LineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
+        seriesFormatPromer = new MyLineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
         seriesFormatPromer.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeries, int index) {
@@ -264,8 +268,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         pointFormat.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeries, int index) {
-                return ""+calculateDifference().getX(curElement).floatValue();
-//                return "";
+//                return ""+calculateDifference().getX(curElement).floatValue();
+                return "";
             }
         });
 
@@ -274,8 +278,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         pointFormatInt.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeriesInt, int index) {
-                return ""+calculateDifference().getX(curElement).floatValue();
-//                return "";
+//                return ""+calculateDifference().getX(curElement).floatValue();
+                return "";
             }
         });
 
@@ -283,8 +287,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         pointFormatDouble.setPointLabeler(new PointLabeler() {
             @Override
             public String getLabel(XYSeries curSeriesDouble, int index) {
-                return ""+calculateDifference().getX(curElement).floatValue();
-//                return "";
+//                return ""+calculateDifference().getX(curElement).floatValue();
+                return "";
             }
         });
 
@@ -917,13 +921,23 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         int currentIndex = seriesSpinner.getSelectedItemPosition();
                         seriesList.clear();
                         seriesList.add(curSeries);
-                        seriesSpinner.setSelection(currentIndex);
+                        seriesSpinner.setSelection(0);
                         createListPoint();
 //                      setScalePlot();
                         resetCount();
                         plot.clear();
+                        if(measurementUnitDB.equals("точки и полуточки")){
+                            pointAndDoublePoint();
+                        }else{
+                            if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
+                                plot.addSeries(curSeries, seriesFormat);
+                            }else{
+                                plot.addSeries(curSeries, seriesFormatPromer);
+                            }
+                        }
                         countPoint = 1;
                         countSeries = 0;
+                        plot.redraw();
                     }
                 });
                 builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -959,6 +973,17 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         plot.addSeries(curSeries, seriesFormatPromer);
                     }
                 }
+            }
+        });
+
+        btnTable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
+                Gson gson = new Gson();
+                String seriesListJson = gson.toJson(seriesList);
+                intent.putExtra("seriesListJson", seriesListJson);
+                startActivity(intent);
             }
         });
 

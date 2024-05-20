@@ -1,8 +1,27 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/Theme.AppCompat.Light">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/Theme.AppCompat.Light" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+<RelativeLayout
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:ap="http://schemas.android.com/apk/res-auto"
     tools:context=".ZamerActivity">
 
 
@@ -98,11 +117,11 @@
                 style="@style/FullScreenGraph"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                ap:gridBackgroundColor = "@color/white"
-                android:layout_weight="1.5"
-                ap:domainOriginLineColor="@color/ap_transparent"
-                ap:rangeOriginLineColor="@color/ap_transparent"
-                ap:titleTextColor="@color/black"
+                app:gridBackgroundColor= "@color/white"
+                android:layout_weight="1.7"
+                app:domainOriginLineColor="@color/ap_transparent"
+                app:rangeOriginLineColor="@color/ap_transparent"
+                app:titleTextColor="@color/black"
                 android:rotationX="180"/>
         </LinearLayout>
 
@@ -147,7 +166,7 @@
                 <LinearLayout
                     android:id="@+id/blockSdvig"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:visibility="gone">
 
@@ -157,7 +176,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text="Измерение №"
-                        android:textSize="24sp" />
+                        android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/znach"
@@ -165,14 +184,14 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text=""
-                        android:textSize="24sp" />
+                        android:textSize="20sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text="Сдвижка"
-                        android:textSize="24sp" />
+                        android:textSize="20sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -194,7 +213,7 @@
                             android:layout_centerHorizontal="true"
                             android:layout_marginLeft="10dp"
                             android:text="0"
-                            android:textSize="24sp" />
+                            android:textSize="20sp" />
 
                         <Button
                             android:id="@+id/increment_button"
@@ -230,7 +249,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:text="Измерение №"
-                        android:textSize="24sp" />
+                        android:textSize="20sp" />
 
                     <EditText
                         android:id="@+id/valueSet"
@@ -239,7 +258,7 @@
                         android:layout_centerHorizontal="true"
                         android:inputType="number"
                         android:text=""
-                        android:textSize="24sp" />
+                        android:textSize="20sp" />
 
                     <Button
                         android:id="@+id/appEdit"
@@ -251,10 +270,19 @@
                 </LinearLayout>
 
             </LinearLayout>
+
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btnTable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Таблица" />
 
 
     </LinearLayout>
 
     />
 </RelativeLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
