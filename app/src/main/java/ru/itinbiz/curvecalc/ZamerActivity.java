@@ -25,7 +25,6 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,7 +47,6 @@ import com.androidplot.xy.XYSeries;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -967,13 +965,16 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if(measurementUnitDB.equals("точки и полуточки")){
                     pointAndDoublePoint();
                 }else{
+                    plot.clear();
                     if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
                         plot.addSeries(curSeries, seriesFormat);
                     }else{
                         plot.addSeries(curSeries, seriesFormatPromer);
                     }
                 }
+           plot.redraw();
             }
+
         });
 
         btnTable.setOnClickListener(new View.OnClickListener() {
