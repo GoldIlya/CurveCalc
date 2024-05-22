@@ -1,11 +1,13 @@
 package ru.itinbiz.curvecalc;
 
 import android.content.Intent;
-import android.graphics.Matrix;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 import android.widget.TableLayout;
@@ -26,15 +28,12 @@ import java.util.List;
 
 public class SeriesTableActivity extends AppCompatActivity {
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
-    
-
     private TableLayout seriesTable;
-
-
     private float scaleFactor = 1.0f;
-    private Matrix matrix = new Matrix();
-
     private ScaleGestureDetector scaleGestureDetector;
+    private FrameLayout frameLayout;
+    private HorizontalScrollView horizontalScrollView;
+    private ScrollView scrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,17 +48,18 @@ public class SeriesTableActivity extends AppCompatActivity {
         seriesList = gson.fromJson(seriesListJson, seriesListType);
 
         // Initialize UI elements
-        seriesTable = findViewById(R.id.series_table);
-        ConstraintLayout seriesTableContainer = findViewById(R.id.series_table_container);
-        seriesTableContainer.removeView(seriesTable);
+        seriesTable = new TableLayout(this);
 
         // Wrap the TableLayout in a HorizontalScrollView and a ScrollView
-        HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
-        ScrollView scrollView = new ScrollView(this);
-        horizontalScrollView.addView(seriesTable);
+        horizontalScrollView = new HorizontalScrollView(this);
+        scrollView = new ScrollView(this);
+        frameLayout = new FrameLayout(this);
+
+//        updatePaddingAndGravity();
+
+        frameLayout.addView(seriesTable);
+        horizontalScrollView.addView(frameLayout);
         scrollView.addView(horizontalScrollView);
-
-
 
         // Add the ScrollView to the layout
         ConstraintLayout constraintLayout = findViewById(R.id.constraint_layout);
@@ -74,49 +74,81 @@ public class SeriesTableActivity extends AppCompatActivity {
             public boolean onScale(ScaleGestureDetector detector) {
                 scaleFactor *= detector.getScaleFactor();
                 scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 10.0f));
-                matrix.setScale(scaleFactor, scaleFactor);
-                seriesTable.setScaleX(scaleFactor);
-                seriesTable.setScaleY(scaleFactor);
+
+                // Set the pivot points to the current touch location
+                frameLayout.setPivotX(detector.getFocusX());
+                frameLayout.setPivotY(detector.getFocusY());
+
+                frameLayout.setScaleX(scaleFactor);
+                frameLayout.setScaleY(scaleFactor);
+
+                updatePaddingAndGravity();
 
                 // Adjust the scrolling behavior based on the zoom level
                 scrollView.post(new Runnable() {
                     @Override
                     public void run() {
-                        scrollView.fullScroll(View.FOCUS_UP);
+                        scrollView.scrollTo(0, scrollView.getBottom());
+                    }
+                });
+                horizontalScrollView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        horizontalScrollView.scrollTo(horizontalScrollView.getRight(), 0);
                     }
                 });
 
-
                 return true;
             }
         });
 
-        // Set touch listener
-        seriesTable.setOnTouchListener(new View.OnTouchListener() {
+        // Set touch listener for scaling and scrolling
+        View.OnTouchListener touchListener = new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 scaleGestureDetector.onTouchEvent(event);
-                return true;
+                return false; // Return false to allow both scrolling and zooming
             }
-        });
+        };
+
+        frameLayout.setOnTouchListener(touchListener);
+        horizontalScrollView.setOnTouchListener(touchListener);
+        scrollView.setOnTouchListener(touchListener);
     }
 
+    private void updatePaddingAndGravity() {
+        int paddingInDp = 100;
+        float basePaddingInPx = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                paddingInDp,
+                getResources().getDisplayMetrics()
+        );
+        int scaledPadding = (int) (basePaddingInPx * scaleFactor/2);
+        seriesTable.setPadding(scaledPadding, scaledPadding, scaledPadding, scaledPadding);
+
+        frameLayout.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        ));
+        seriesTable.setForegroundGravity(Gravity.CENTER);
+        seriesTable.requestLayout();
+    }
 
     private void createTable(TableLayout tableLayout, List<SimpleXYSeries> seriesList) {
         // Add table headers
         TableRow headerRow = new TableRow(this);
         TextView xHeader = new TextView(this);
         xHeader.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
-        xHeader.setPadding(2,0,2,0);
+        xHeader.setPadding(2, 0, 2, 0);
         xHeader.setText("Номер");
         headerRow.addView(xHeader);
         for (SimpleXYSeries series : seriesList) {
             TextView yHeader = new TextView(this);
-            yHeader.setPadding(2,0,2,0);
-            if(seriesList.indexOf(series)==0){
+            yHeader.setPadding(2, 0, 2, 0);
+            if (seriesList.indexOf(series) == 0) {
                 yHeader.setText("Промер");
-            }else{
-                yHeader.setText("Шаг" + (seriesList.indexOf(series)));
+            } else {
+                yHeader.setText("Шаг " + (seriesList.indexOf(series)));
             }
             headerRow.addView(yHeader);
         }
@@ -128,11 +160,11 @@ public class SeriesTableActivity extends AppCompatActivity {
             TableRow dataRow = new TableRow(this);
             TextView yValue = new TextView(this);
             yValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
-            yValue.setPadding(2,0,2,0);
+            yValue.setPadding(2, 0, 2, 0);
             boolean isInteger = (seriesList.get(0).getY(i).floatValue() - Math.floor(seriesList.get(0).getY(i).floatValue())) == 0;
-            if(isInteger){
+            if (isInteger) {
                 yValue.setText(String.valueOf(seriesList.get(0).getY(i)));
-            }else{
+            } else {
                 yValue.setText(" - ");
             }
             dataRow.addView(yValue);
@@ -140,33 +172,39 @@ public class SeriesTableActivity extends AppCompatActivity {
                 int indexSeries = seriesList.indexOf(series);
                 TextView xValue = new TextView(this);
                 xValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
-                xValue.setPadding(2,0,2,0);
-                if(indexSeries>0){
-                    SimpleXYSeries diff =  calculateDifference(seriesList.get(indexSeries-1), series, indexSeries);
+                xValue.setPadding(2, 0, 2, 0);
+                if (indexSeries > 0) {
+                    SimpleXYSeries diff = calculateDifference(seriesList.get(indexSeries - 1), series, indexSeries);
                     Double iDiff = diff.getX(i).doubleValue();
-                    if (iDiff != 0.0){
-                        if(iDiff>0){
-                            xValue.setText(String.valueOf(series.getX(i))+"  "+"+"+iDiff);
-                        }else {
-                            xValue.setText(String.valueOf(series.getX(i))+"  "+iDiff);
+                    if (iDiff != 0.0) {
+                        if (iDiff > 0) {
+                            xValue.setText(String.valueOf(series.getX(i)) + "  " + "+" + iDiff);
+                        } else {
+                            xValue.setText(String.valueOf(series.getX(i)) + "  " + iDiff);
                         }
-                        xValue.setTextColor(this.getResources().getColor(R.color.green));
-                    }else{
+                        if(isInteger){
+                            xValue.setTextColor(this.getResources().getColor(R.color.green));
+                        }else{
+                            xValue.setTextColor(this.getResources().getColor(R.color.blue));
+                        }
+
+                    } else {
                         xValue.setText(String.valueOf(series.getX(i)));
                     }
-                }
-                else{
+                } else {
                     xValue.setText(String.valueOf(series.getX(i)));
                 }
                 dataRow.addView(xValue);
             }
             tableLayout.addView(dataRow);
+            tableLayout.setPadding(100,100,100,100);
         }
     }
+
     private SimpleXYSeries calculateDifference(SimpleXYSeries prevSeries, SimpleXYSeries curSeries, int indexCurSeries) {
         SimpleXYSeries differenceSeries = new SimpleXYSeries("Difference");
 
-        if (seriesList.size() > 0 && indexCurSeries > 0 ) {
+        if (seriesList.size() > 0 && indexCurSeries > 0) {
             // Get the two selected series from the spinner
             SimpleXYSeries series1 = prevSeries;
             SimpleXYSeries series2 = curSeries;
@@ -177,11 +215,8 @@ public class SeriesTableActivity extends AppCompatActivity {
                 double x2 = series2.getX(i).doubleValue();
                 double difference = x2 - x1;
                 differenceSeries.addLast(difference, y);
-
             }
-            // Calculate the difference between the two series and display it
         }
         return differenceSeries;
     }
-
 }

@@ -18,6 +18,7 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
     private Context mCtx;
     private SimpleXYSeries dataSet, diffSet;
     private OnItemClickListener onItemClickListener;
+    private int selectedIndex = -1; // Variable to store selected index
 
 
     public interface OnItemClickListener {
@@ -74,6 +75,13 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
             }
         }
 
+        // Highlight the selected item
+        if (position == selectedIndex) {
+            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
+        } else {
+            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
+        }
+
     }
 
     @Override
@@ -97,6 +105,10 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
                     String number = String.valueOf(dataSet.getY(getAdapterPosition()).floatValue());
                     String value = String.valueOf(dataSet.getX(getAdapterPosition()).floatValue());
                     int index = getAdapterPosition();
+
+                    selectedIndex = index;
+                    notifyDataSetChanged();
+
                     onItemClickListener.onItemClick(number, value, index);
                 }
             });
