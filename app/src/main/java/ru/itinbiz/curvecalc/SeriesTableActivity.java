@@ -123,7 +123,7 @@ public class SeriesTableActivity extends AppCompatActivity {
                 paddingInDp,
                 getResources().getDisplayMetrics()
         );
-        int scaledPadding = (int) (basePaddingInPx * scaleFactor/2);
+        int scaledPadding = (int) (basePaddingInPx * scaleFactor*2);
         seriesTable.setPadding(scaledPadding, scaledPadding, scaledPadding, scaledPadding);
 
         frameLayout.setLayoutParams(new FrameLayout.LayoutParams(
