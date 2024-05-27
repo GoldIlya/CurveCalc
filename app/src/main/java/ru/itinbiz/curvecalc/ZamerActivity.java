@@ -76,8 +76,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private int countSeries = 0;
 
     private LinearLayout blockSdvig, blockSeries, blockEdit, blockAddPoint;
-    private Button addButton, btnPlus, btnMinus, createNewSeriesButton, prevButton, nextButton, appEdit, clearListPoint, resetChanges, btnTable;
-    private EditText xCoordinateEditText, valueSet;
+    private Button btnEnterVal, btnPlus, btnMinus, createNewSeriesButton, prevButton, nextButton, appEdit, clearListPoint, resetChanges, btnTable;
+    private EditText etEnterVal, valueSet;
     private TextView countTextView;
     private Spinner seriesSpinner;
     private ArrayAdapter<String> seriesAdapter;
@@ -102,12 +102,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
-
-
         plot = findViewById(R.id.plot);
         seriesSpinner = findViewById(R.id.series_spinner);
-        addButton = findViewById(R.id.addButton);
-        xCoordinateEditText = findViewById(R.id.xCoordinateEditText);
+        btnEnterVal = findViewById(R.id.btnEnterVal);
+        etEnterVal = findViewById(R.id.etEnterVal);
         valueSet = findViewById(R.id.valueSet);
         appEdit = findViewById(R.id.appEdit);
         btnPlus = findViewById(R.id.increment_button);
@@ -314,10 +312,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         PanZoom.attach(plot, PanZoom.Pan.BOTH, PanZoom.Zoom.SCALE);
         calculateDifference();
         createListPoint();
-        addButton.setOnClickListener(new View.OnClickListener() {
+        btnEnterVal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String xCoordinateString = xCoordinateEditText.getText().toString();
+                String xCoordinateString = etEnterVal.getText().toString();
                 String yCoordinateString = String.valueOf(countPoint);
 
                 if(seriesList.size()>1){
@@ -374,12 +372,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
 
-        xCoordinateEditText.setOnKeyListener(new View.OnKeyListener() {
+        etEnterVal.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 boolean consumed = false;
                 if (keyCode == KEYCODE_ENTER) {
                     if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                        String xCoordinateString = xCoordinateEditText.getText().toString();
+                        String xCoordinateString = etEnterVal.getText().toString();
                         String yCoordinateString = String.valueOf(countPoint);
 
                         if(seriesList.size()>1){
@@ -437,12 +435,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
                     consumed = true;
                 }
-                xCoordinateEditText.requestFocus();
+                etEnterVal.requestFocus();
 
                 // Show the numeric keyboard explicitly
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(xCoordinateEditText, InputMethodManager.SHOW_IMPLICIT);
-                xCoordinateEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
+                etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 return consumed;
 
             }
