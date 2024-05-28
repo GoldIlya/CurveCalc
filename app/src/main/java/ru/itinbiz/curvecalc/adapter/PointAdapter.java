@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.androidplot.xy.SimpleXYSeries;
 
+import java.util.List;
+
 import ru.itinbiz.curvecalc.R;
 
 
@@ -17,6 +19,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
     private Context mCtx;
     private SimpleXYSeries dataSet, diffSet;
+    private List<Boolean> listChange;
     private OnItemClickListener onItemClickListener;
 
 
@@ -25,11 +28,12 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     }
 
 
-    public PointAdapter(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener) {
+    public PointAdapter(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, List<Boolean> curListChange, OnItemClickListener onItemClickListener) {
         this.mCtx = mCtx;
         this.dataSet = dataSet;
         this.diffSet = diffSet;
         this.onItemClickListener = onItemClickListener;
+        this.listChange = curListChange;
     }
 
     @Override

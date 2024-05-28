@@ -65,7 +65,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     int measurementIdDb;
     boolean isNew = false;
     private XYPlot plot;
+
+
     private SimpleXYSeries series, curSeries, curSeriesInt, curSeriesDouble,  highlightedPoint;
+    private List<Boolean> listChange = new ArrayList<>();
+    private List<Boolean> curListChange = new ArrayList<>();
+    private List<List<Boolean>> listAllChange = new ArrayList<>();
     private RecyclerView recyclerView;
     private LineAndPointFormatter seriesFormat, seriesFormatInt,
             seriesFormatDouble, seriesFormatPromer,
@@ -146,9 +151,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             measurementDB = getMeasurement(measurementId);
             zamerNameDB = measurementDB.getName();
 //            Toast.makeText(this, "Имя "+ zamerNameDB, Toast.LENGTH_SHORT).show();
-            Gson gson = new Gson();
+            Gson gsonPoint = new Gson();
+            Gson gsonChange = new Gson();
             Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
-            seriesList = gson.fromJson(measurementDB.getSeriesListJson(), seriesListType);
+            seriesList = gsonPoint.fromJson(measurementDB.getSeriesListJson(), seriesListType);
+            Type listAllChangeType = new TypeToken<List<List<Boolean>>>(){}.getType();
+            listAllChange = gsonChange.fromJson(measurementDB.getListAllChangeJson(),listAllChangeType);
             if(seriesList.size()>0){
                 countPoint = measurementDB.getCountPoint();
                 countSeries = measurementDB.getCountSeries();
@@ -156,6 +164,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }else{
                 series = new SimpleXYSeries("Замер");
                 seriesList.add(series); // Add the initial series to the list
+                for (int i = 0; i < series.size(); i++) {
+                    listChange.add(false); // или changeList.add(false);
+                }
+                listAllChange.add(listChange);
             }
 
             String[] newSeriesArray = getSeriesArray();
@@ -173,12 +185,15 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             zamerNameDB = zamerName;
             Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
             series = new SimpleXYSeries("Замер");
+            for (int i = 0; i < series.size(); i++) {
+                listChange.add(false); // или changeList.add(false);
+            }
+            listAllChange.add(listChange);
             seriesList.add(series); // Add the initial series to the list
         }
 
         countTextView = findViewById(R.id.count_text_view);
-
-
+        curListChange = listAllChange.get(0);
         curSeries = seriesList.get(0);
 
         // Создаём разные форматы для отображения на графике
@@ -350,6 +365,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 int currentIndex = seriesSpinner.getSelectedItemPosition();
                                 seriesList.clear();
                                 seriesList.add(curSeries);
+                                listAllChange.clear();
+                                listAllChange.add(curListChange);
                                 seriesSpinner.setSelection(currentIndex);
                                 createListPoint();
                                 setScalePlot();
@@ -378,6 +395,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         int currentIndex = seriesSpinner.getSelectedItemPosition();
                         seriesList.clear();
                         seriesList.add(curSeries);
+                        listAllChange.clear();
+                        listAllChange.add(curListChange);
                         seriesSpinner.setSelection(currentIndex);
                         createListPoint();
                         setScalePlot();
@@ -416,6 +435,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                         int currentIndex = seriesSpinner.getSelectedItemPosition();
                                         seriesList.clear();
                                         seriesList.add(curSeries);
+                                        listAllChange.clear();
+                                        listAllChange.add(curListChange);
                                         seriesSpinner.setSelection(currentIndex);
                                         createListPoint();
                                         if(measurementUnitDB.equals("точки и полуточки")){
@@ -447,6 +468,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 int currentIndex = seriesSpinner.getSelectedItemPosition();
                                 seriesList.clear();
                                 seriesList.add(curSeries);
+                                listAllChange.clear();
+                                listAllChange.add(curListChange);
                                 seriesSpinner.setSelection(currentIndex);
                                 createListPoint();
                                 if(measurementUnitDB.equals("точки и полуточки")){
@@ -604,6 +627,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         createNewSeries(curSeries);
 //                    Toast.makeText(ZamerActivity.this, ""+getSeriesArray().length, Toast.LENGTH_SHORT).show();
                         curSeries = seriesList.get(selectedSeriesIndex);
+                        curListChange = listAllChange.get(selectedSeriesIndex);
                         String[] newSeriesArray = getSeriesArray();
                         ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
                         newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -621,6 +645,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         }
                         plot.redraw();
                     }
+
                     createListPoint();
                     resetChangesList();
                     resetCount();
@@ -642,6 +667,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 createNewSeries(curSeries);
 //                    Toast.makeText(ZamerActivity.this, ""+getSeriesArray().length, Toast.LENGTH_SHORT).show();
                                 curSeries = seriesList.get(selectedSeriesIndex);
+                                curListChange = listAllChange.get(selectedSeriesIndex);
                                 String[] newSeriesArray = getSeriesArray();
                                 ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
                                 newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -694,6 +720,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
                 seriesSpinner.setSelection(selectedSeriesIndex);
                 curSeries = seriesList.get(selectedSeriesIndex);
+                curListChange = listAllChange.get(selectedSeriesIndex);
                 createListPoint();
                 plot.clear();
                 if(measurementUnitDB.equals("точки и полуточки")){
@@ -720,6 +747,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
                 seriesSpinner.setSelection(selectedSeriesIndex);
                 curSeries = seriesList.get(selectedSeriesIndex);
+                curListChange = listAllChange.get(selectedSeriesIndex);
                 createListPoint();
                 plot.clear();
                 if(measurementUnitDB.equals("точки и полуточки")){
@@ -746,10 +774,15 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+
                         curSeries.clear();
+                        curListChange.clear();
+                        listAllChange.clear();
                         int currentIndex = seriesSpinner.getSelectedItemPosition();
+
                         seriesList.clear();
                         seriesList.add(curSeries);
+                        listAllChange.add(curListChange);
                         createListPoint();
 //                      setScalePlot();
                         resetCount();
@@ -817,9 +850,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
-                Gson gson = new Gson();
-                String seriesListJson = gson.toJson(seriesList);
-                intent.putExtra("seriesListJson", seriesListJson);
+                Gson gsonPoint = new Gson();
+                Gson gsonChange = new Gson();
+                String seriesListJson = gsonPoint.toJson(seriesList);
+                String listAllChangeJson = gsonChange.toJson(listAllChange);
+                intent.putExtra("seriesListJson", seriesListJson).putExtra("listAllChangeJson", listAllChangeJson);
                 startActivity(intent);
             }
         });
@@ -834,6 +869,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             protected Long doInBackground(Void... voids) {
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
+                String listAllChangeJson = gson.toJson(listAllChange);
 
                 Measurement measurement = new Measurement();
                 measurement.setName(zamerNameDB);
@@ -841,6 +877,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 measurement.setCountSeries(countSeries);
                 measurement.setMeasurementUnit(measurementUnitDB);
                 measurement.setSeriesListJson(seriesListJson);
+                measurement.setListAllChangeJson(listAllChangeJson);
                 long insertedId = AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
                         .insertAndReturnId(measurement);
@@ -853,7 +890,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 super.onPostExecute(insertedId);
                 // Handle the result here
                 // For example, you can display a toast message or update the UI
-                Toast.makeText(ZamerActivity.this, "Data saved successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ZamerActivity.this, "Данные сохранены", Toast.LENGTH_SHORT).show();
 
                 // Get the inserted measurement on a background thread
                 new AsyncTask<Void, Void, Measurement>() {
@@ -890,9 +927,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
+                String listAllChangeJson = gson.toJson(listAllChange);
                 measurementDB.setCountPoint(countPoint);
                 measurementDB.setCountSeries(countSeries);
                 measurementDB.setSeriesListJson(seriesListJson);
+                measurementDB.setListAllChangeJson(listAllChangeJson);
                 AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
                         .updateMeasurement(measurementDB);
@@ -915,6 +954,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private void addDataPoint(float xCoordinate, float yCoordinate) {
         // Create a new data point and add it to the series
         curSeries.addLast(xCoordinate, yCoordinate);
+        curListChange.add(false);
         // Notify the adapter about the changes
         createListPoint();
         setScalePlot();
@@ -948,6 +988,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     plot.addSeries(curSeries, seriesFormatPromer);
                 }
             }
+
             plot.addSeries(highlightedPoint, pointFormat);
             plot.redraw();
             curElement = index;
@@ -995,6 +1036,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             newSeries.addLast(x , y); // Add 1 to the X value to create a new series based on the previous one
         }
         seriesList.add(newSeries); // Add the new series to the list
+        List<Boolean> newListchange = new ArrayList<>();
+        for (int i = 0; i < curSeries.size(); i++) {
+            newListchange.add(false); // или changeList.add(false);
+        }
+        listAllChange.add(newListchange);
         plot.redraw();
         // Update the spinner adapter with the new series
         String[] newSeriesArray = getSeriesArray();
@@ -1124,7 +1170,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         PointAdapter pointAdapter;
         PointAdapterForDiff pointAdapterForDiff;
         if(seriesSpinner.getSelectedItemPosition()==0 || seriesList.size() == 1){
-            pointAdapter = new PointAdapter(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
+            pointAdapter = new PointAdapter(ZamerActivity.this, curSeries, calculateDifference() , curListChange, ZamerActivity.this);
             recyclerView.setAdapter(pointAdapter);
             blockSdvig.setVisibility(View.GONE);
             blockEdit.setVisibility(View.GONE);
@@ -1133,7 +1179,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             resetChanges.setVisibility(View.GONE);
 
         }else{
-            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
+            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries,  calculateDifference() ,curListChange, ZamerActivity.this);
             recyclerView.setAdapter(pointAdapterForDiff);
             blockSdvig.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
@@ -1365,6 +1411,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
 
         highlightedPoint.setX(curX, 0);
+        curListChange.set(curElement, true);
         List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
         subList.clear();
         updateCountText();
@@ -1429,6 +1476,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             pointAndDoublePoint();
         }
         highlightedPoint.setX(curX, 0);
+        curListChange.set(curElement, true);
         List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
         subList.clear();
         updateCountText();
