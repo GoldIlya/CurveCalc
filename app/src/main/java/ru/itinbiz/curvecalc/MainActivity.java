@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                 RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
 
                 // Set the default selection for the RadioGroup
-                radioGroup.check(R.id.radioButton10m);
+                radioGroup.check(R.id.radioBtnNext);
 
                 // Create the AlertDialog with the custom layout
                 AlertDialog dialogWithInput = new AlertDialog.Builder(MainActivity.this)

@@ -26,10 +26,16 @@
             android:text="Хорда" />
 
         <RadioButton
-            android:id="@+id/radioButton10m"
+            android:id="@+id/radioBtnNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="10 м" />
+            android:text="соседние точки" />
+
+        <RadioButton
+            android:id="@+id/radioBtnNeighbor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="через одну точку" />
 
         <RadioButton
             android:id="@+id/radioButton20m"
