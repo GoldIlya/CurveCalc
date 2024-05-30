@@ -89,11 +89,22 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <Button
+                        android:id="@+id/btnOnSdvig"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/green"
+                        android:text="+/-"
+                        android:visibility="gone" />
+
                     <LinearLayout
                         android:id="@+id/blockAddPoint"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:visibility="visible">
+
                         <EditText
                             android:id="@+id/etEnterVal"
                             android:layout_width="wrap_content"
@@ -132,8 +143,8 @@
                             android:id="@+id/numberPP"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
                             android:layout_centerHorizontal="true"
+                            android:layout_marginTop="10dp"
                             android:text="№ "
                             android:textSize="20sp" />
 
@@ -141,8 +152,8 @@
                             android:id="@+id/znach"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
                             android:layout_centerHorizontal="true"
+                            android:layout_marginTop="10dp"
                             android:text=""
                             android:textSize="20sp" />
 
@@ -158,8 +169,8 @@
                                 android:layout_height="45dp"
                                 android:layout_marginLeft="10dp"
                                 android:backgroundTint="@color/green"
-                                android:textColor="@color/black"
                                 android:text="-"
+                                android:textColor="@color/black"
                                 android:textSize="18dp" />
 
                             <TextView
@@ -177,8 +188,8 @@
                                 android:layout_height="45dp"
                                 android:layout_marginLeft="10dp"
                                 android:backgroundTint="@color/green"
-                                android:textColor="@color/black"
                                 android:text="+"
+                                android:textColor="@color/black"
                                 android:textSize="18dp" />
 
 
@@ -199,8 +210,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:orientation="horizontal"
-                        android:weightSum="3"
-                        android:visibility="visible">
+                        android:visibility="gone"
+                        android:weightSum="3">
+
                         <TextView
                             android:id="@+id/numberEdit"
                             android:layout_width="wrap_content"
@@ -218,9 +230,9 @@
                             android:layout_marginStart="8dp"
                             android:layout_marginTop="6dp"
                             android:layout_marginBottom="8dp"
+                            android:layout_weight="1"
                             android:hint="365.0"
                             android:inputType="numberDecimal"
-                            android:layout_weight="1"
                             android:singleLine="true" />
 
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -231,13 +243,22 @@
                             android:layout_alignParentBottom="true"
                             android:layout_marginStart="8dp"
                             android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
                             android:backgroundTint="@color/green"
                             android:src="@android:drawable/ic_menu_edit"
-                            android:layout_weight="1"
                             android:tint="@color/green"
-                            app:fabSize="normal"/>
+                            app:fabSize="normal" />
                     </LinearLayout>
 
+                    <Button
+                        android:id="@+id/btnShiftMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/green"
+                        android:text="режим"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 

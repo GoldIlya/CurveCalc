@@ -10,8 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.androidplot.xy.SimpleXYSeries;
 
-import java.util.List;
-
 import ru.itinbiz.curvecalc.R;
 
 
@@ -19,7 +17,6 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
 
     private Context mCtx;
     private SimpleXYSeries dataSet, diffSet;
-    private List<Boolean> listChange;
     private OnItemClickListener onItemClickListener;
     private int selectedIndex = -1; // Variable to store selected index
 
@@ -29,12 +26,11 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
     }
 
 
-    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, List<Boolean> curListChange, OnItemClickListener onItemClickListener) {
+    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener) {
         this.mCtx = mCtx;
         this.dataSet = dataSet;
         this.diffSet = diffSet;
         this.onItemClickListener = onItemClickListener;
-        this.listChange = curListChange;
     }
 
     @Override
@@ -67,7 +63,7 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
             holder.tvDiff.setText(diff);
         }
 
-        if(!diff.equals("0.0") && listChange.get(position)){
+        if(!diff.equals("0.0")){
             if(isInteger){
                 holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.green));
                 holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.green));
@@ -120,4 +116,3 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
     }
 
 }
-

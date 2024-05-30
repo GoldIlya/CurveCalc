@@ -10,6 +10,10 @@ android {
     namespace 'ru.itinbiz.curvecalc'
     compileSdk 34
 
+    packagingOptions {
+        exclude 'META-INF/androidx.cardview_cardview.version'
+    }
+
     defaultConfig {
         applicationId "ru.itinbiz.curvecalc"
         minSdk 24
@@ -38,6 +42,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation "com.androidplot:androidplot-core:1.5.10"
     implementation 'com.google.android.material:material:1.7.0'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:cardview-v7:28.0.0'
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'

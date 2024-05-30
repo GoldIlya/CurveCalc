@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:text="Режим сдвига точек" />
+
+        <RadioButton
+            android:id="@+id/radioBtnAllPoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="режим включает возможность сдвига всех точек в шаге" />
+
+        <RadioButton
+            android:id="@+id/radioBtnOnePoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="режим включает возможность  сдвига только одной точки в шаге" />
+
+    </RadioGroup>
+
+</LinearLayout>

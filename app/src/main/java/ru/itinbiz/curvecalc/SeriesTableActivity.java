@@ -28,7 +28,6 @@ import java.util.List;
 
 public class SeriesTableActivity extends AppCompatActivity {
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
-    private List<List<Boolean>> listAllChange = new ArrayList<>();
     private TableLayout seriesTable;
     private float scaleFactor = 1.0f;
     private ScaleGestureDetector scaleGestureDetector;
@@ -44,13 +43,10 @@ public class SeriesTableActivity extends AppCompatActivity {
         // Get the seriesList data from the Intent
         Intent intent = getIntent();
         String seriesListJson = intent.getStringExtra("seriesListJson");
-        String listAllChangeJson = intent.getStringExtra("listAllChangeJson");
-        Gson gsonPoint = new Gson();
-        Gson gsonChange = new Gson();
+        Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
-        seriesList = gsonPoint.fromJson(seriesListJson, seriesListType);
-        Type listAllChangeType = new TypeToken<List<List<Boolean>>>(){}.getType();
-        listAllChange = gsonChange.fromJson(listAllChangeJson,listAllChangeType);
+        seriesList = gson.fromJson(seriesListJson, seriesListType);
+
         // Initialize UI elements
         seriesTable = new TableLayout(this);
 
@@ -180,7 +176,7 @@ public class SeriesTableActivity extends AppCompatActivity {
                 if (indexSeries > 0) {
                     SimpleXYSeries diff = calculateDifference(seriesList.get(indexSeries - 1), series, indexSeries);
                     Double iDiff = diff.getX(i).doubleValue();
-                    if (listAllChange.get(indexSeries).get(i) && iDiff != 0.0) {
+                    if (iDiff != 0.0) {
                         if (iDiff > 0) {
                             xValue.setText(String.valueOf(series.getX(i)) + "  " + "+" + iDiff);
                         } else {

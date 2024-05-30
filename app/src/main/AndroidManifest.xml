@@ -13,10 +13,7 @@
         android:theme="@style/Theme.CurveCalc"
         tools:targetApi="31">
         <activity
-            android:name=".SeriesTableActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ZamerActivity"
+            android:name=".InfoActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -27,6 +24,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".AddZamerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SeriesTableActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ZamerActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
