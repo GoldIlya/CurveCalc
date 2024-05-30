@@ -300,7 +300,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         // Add the series to the plot with the formatter
-        if(measurementUnitDB.equals("точки и полуточки")){
+        if(measurementUnitDB.equals("Точки и полуточки 2")){
             curSeriesInt = new SimpleXYSeries("1");
             curSeriesDouble = new SimpleXYSeries("1/2");
             pointAndDoublePoint();
@@ -392,7 +392,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 //                        Toast.makeText(MainActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
                     }
                 }
-                if(measurementUnitDB.equals("точки и полуточки")){
+                if(measurementUnitDB.equals("Точки и полуточки 2")){
                     pointAndDoublePoint();
                 }
             }
@@ -424,7 +424,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                         seriesList.add(curSeries);
                                         seriesSpinner.setSelection(currentIndex);
                                         createListPoint();
-                                        if(measurementUnitDB.equals("точки и полуточки")){
+                                        if(measurementUnitDB.equals("Точки и полуточки 2")){
                                             pointAndDoublePoint();
                                         }
                                         setScalePlot();
@@ -455,7 +455,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 seriesList.add(curSeries);
                                 seriesSpinner.setSelection(currentIndex);
                                 createListPoint();
-                                if(measurementUnitDB.equals("точки и полуточки")){
+                                if(measurementUnitDB.equals("Точки и полуточки 2")){
                                     pointAndDoublePoint();
                                 }
                                 setScalePlot();
@@ -626,7 +626,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         seriesSpinner.setAdapter(newSeriesAdapter);
                         seriesSpinner.setSelection(seriesList.size()-1);
                         plot.clear();
-                        if(measurementUnitDB.equals("точки и полуточки")){
+                        if(measurementUnitDB.equals("Точки и полуточки 2")){
                             pointAndDoublePoint();
                         }else{
                             if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -664,7 +664,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 seriesSpinner.setAdapter(newSeriesAdapter);
                                 seriesSpinner.setSelection(seriesList.size()-1);
                                 plot.clear();
-                                if(measurementUnitDB.equals("точки и полуточки")){
+                                if(measurementUnitDB.equals("Точки и полуточки 2")){
                                     pointAndDoublePoint();
                                 }else{
                                     if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -712,7 +712,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 curSeries = seriesList.get(selectedSeriesIndex);
                 createListPoint();
                 plot.clear();
-                if(measurementUnitDB.equals("точки и полуточки")){
+                if(measurementUnitDB.equals("Точки и полуточки 2")){
                     pointAndDoublePoint();
                 }else{
                     if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -738,7 +738,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 curSeries = seriesList.get(selectedSeriesIndex);
                 createListPoint();
                 plot.clear();
-                if(measurementUnitDB.equals("точки и полуточки")){
+                if(measurementUnitDB.equals("Точки и полуточки 2")){
                     pointAndDoublePoint();
                 }else{
                     if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -775,7 +775,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         seriesSpinner.setAdapter(newSeriesAdapter);
                         seriesSpinner.setSelection(0);
-                        if(measurementUnitDB.equals("точки и полуточки")){
+                        if(measurementUnitDB.equals("Точки и полуточки 2")){
                             pointAndDoublePoint();
                         }else{
                             if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -993,7 +993,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         setScalePlot();
         // Refresh the plot
         plot.redraw();
-        if(measurementUnitDB.equals("точки и полуточки")){
+        if(measurementUnitDB.equals("Точки и полуточки 2")){
             countPoint = countPoint+0.5;
         }else{
             countPoint++;
@@ -1012,7 +1012,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             plot.clear();
             highlightedPoint = new SimpleXYSeries("");
             highlightedPoint.addFirst(Float.parseFloat(value),Float.parseFloat(number));
-            if(measurementUnitDB.equals("точки и полуточки")){
+            if(measurementUnitDB.equals("Точки и полуточки 2")){
                 pointAndDoublePoint();
             }else{
                 if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -1042,7 +1042,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             plot.clear();
             highlightedPoint = new SimpleXYSeries("");
             highlightedPoint.addFirst(Double.parseDouble(value),Double.parseDouble(number));
-            if(measurementUnitDB.equals("точки и полуточки")){
+            if(measurementUnitDB.equals("Точки и полуточки 2")){
                 pointAndDoublePoint();
             }else{
                 if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
@@ -1216,16 +1216,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
             recyclerView.setAdapter(pointAdapterForDiff);
             btnShiftMode.setVisibility(View.VISIBLE);
-            if(isModeOnePoint){
-                btnOnSdvig.setVisibility(View.VISIBLE);
-                blockSdvig.setVisibility(View.GONE);
-            }else{
-                btnOnSdvig.setVisibility(View.GONE);
-                blockSdvig.setVisibility(View.VISIBLE);
-            }
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.GONE);
+            if(!isModeOnePoint){
+                btnOnSdvig.setVisibility(View.GONE);
+                blockSdvig.setVisibility(View.VISIBLE);
+            }
             resetChanges.setVisibility(View.VISIBLE);
         }
         plot.redraw();
@@ -1317,7 +1314,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         curSeries = seriesList.get(selectedSeriesIndex);
         createListPoint();
         plot.clear();
-        if (measurementUnitDB.equals("точки и полуточки")) {
+        if (measurementUnitDB.equals("Точки и полуточки 2")) {
             pointAndDoublePoint();
         } else {
             if (seriesList.size() == 1 || seriesSpinner.getSelectedItemPosition() == 0) {
@@ -1346,10 +1343,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 double y = curSeries.getY(i).doubleValue();
                 curSeriesDouble.addLast(x,y);
             }
-//         if(curSeriesDouble.size()>0 && curSeriesInt.size()>0){
-//             Toast.makeText(this, "Целые"+curSeriesInt.getY(i), Toast.LENGTH_SHORT).show();
-//             Toast.makeText(this, "Дробные"+curSeriesDouble.getY(i), Toast.LENGTH_SHORT).show();
-//         }
         }
 
 
@@ -1382,7 +1375,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             seriesList.add(curSeries);
             seriesSpinner.setSelection(currentIndex);
             createListPoint();
-            if(measurementUnitDB.equals("точки и полуточки")){
+            if(measurementUnitDB.equals("Точки и полуточки 2")){
                 pointAndDoublePoint();
             }
             String[] newSeriesArray = getSeriesArray();
@@ -1399,7 +1392,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         int currentIndex = seriesList.indexOf(curSeries);
         count++;
         Number curX = Float.parseFloat(curSeries.getX(curElement).toString())+1;
-        if(measurementUnitDB.equals("соседние точки")){
+        if(measurementUnitDB.equals("Точки")){
             if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
                 curSeries.setX(curX1, curElement+1);
@@ -1415,7 +1408,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
             curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("через одну точку")){
+        }if(measurementUnitDB.equals("Точки и полуточки 1")){
             if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
                 curSeries.setX(curX1, curElement+2);
@@ -1431,7 +1424,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
             curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("точки и полуточки")){
+        }if(measurementUnitDB.equals("Точки и полуточки 2")){
             if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
                 curSeries.setX(curX1, curElement+2);
@@ -1463,7 +1456,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         int currentIndex = seriesList.indexOf(curSeries);
         count--;
         Number curX = Float.parseFloat(curSeries.getX(curElement).toString())-1;
-        if(measurementUnitDB.equals("соседние точки")){
+        if(measurementUnitDB.equals("Точки")){
             if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
                 curSeries.setX(curX1, curElement+1);
@@ -1479,7 +1472,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
             curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("через одну точку")){
+        }if(measurementUnitDB.equals("Точки и полуточки 1")){
             if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
                 curSeries.setX(curX1, curElement+2);
@@ -1495,7 +1488,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
             curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("точки и полуточки")){
+        }if(measurementUnitDB.equals("Точки и полуточки 2")){
             if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
                 curSeries.setX(curX1, curElement+2);
@@ -1523,21 +1516,21 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
     private void resetChangesList(){
+
         int currentIndex = seriesList.indexOf(curSeries);
         List<SimpleXYSeries> subList = seriesList.subList(currentIndex , seriesList.size());
         subList.clear();
         countSeries = currentIndex-1;
         createNewSeries(seriesList.get(countSeries));
         curSeries = seriesList.get(seriesList.size()-1);
-        updateCountText();
-        createListPoint();
         calculateDifference();
         String[] newSeriesArray = getSeriesArray();
         ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
         newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         seriesSpinner.setAdapter(newSeriesAdapter);
         seriesSpinner.setSelection(seriesList.size()-1);
-        if(measurementUnitDB.equals("точки и полуточки")){
+        updateCountText();
+        if(measurementUnitDB.equals("Точки и полуточки 2")){
             pointAndDoublePoint();
         }else{
             plot.clear();

@@ -50,7 +50,7 @@ public class AddZamerActivity extends AppCompatActivity {
                 RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
 
                 // Set the default selection for the RadioGroup
-                radioGroup.check(R.id.radioBtnNext);
+                radioGroup.check(R.id.radioBtnPoint);
 
                 // Create the AlertDialog with the custom layout
                 AlertDialog dialogWithInput = new AlertDialog.Builder(AddZamerActivity.this)
