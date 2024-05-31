@@ -16,6 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
+import ru.itinbiz.curvecalc.AddZamerActivity;
 import ru.itinbiz.curvecalc.MainActivity;
 import ru.itinbiz.curvecalc.R;
 import ru.itinbiz.curvecalc.ZamerActivity;
@@ -72,7 +73,7 @@ public class ZamerAdapter extends RecyclerView.Adapter<ZamerAdapter.ZamerViewHol
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             deleteMeasurement(measurementId);
-                            Intent intent = new Intent(mCtx, MainActivity.class);
+                            Intent intent = new Intent(mCtx, AddZamerActivity.class);
                             mCtx.startActivity(intent);
                         }
                     });

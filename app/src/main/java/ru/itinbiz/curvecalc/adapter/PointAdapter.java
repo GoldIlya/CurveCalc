@@ -49,15 +49,34 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         if(isInteger){
             holder.tvNumber.setText(pointY);
             holder.tvZnach.setText(" "+pointX);
-        }
-        if(position >= 1 && position < dataSet.size()-1){
-            String pointYprev = String.valueOf(Math.round(dataSet.getY(position-1).floatValue()));
-            String pointYforvard = String.valueOf(Math.round(dataSet.getY(position+1).floatValue()));
-            if(!isInteger){
-                holder.tvNumber.setText(pointYprev+"/"+pointYforvard);
-                holder.tvZnach.setText(pointX);
+        }else{
+            int roundYprev, roundYforvard;
+
+            String  pointYprev, pointYforvard;
+            pointYprev = "null";
+            pointYforvard = "null";
+
+            if(position>=1 && (dataSet.size()-1)-position >= 1){
+                roundYprev = Math.round(dataSet.getY(position-1).floatValue());
+                roundYforvard = Math.round(dataSet.getY(position+1).floatValue());
+                pointYforvard = String.valueOf(roundYforvard);
+                pointYprev = String.valueOf(roundYprev);
+            }else{if(position<1 && (dataSet.size()-1)-position >= 1){
+                roundYforvard = Math.round(dataSet.getY(position+1).floatValue());
+                pointYforvard = String.valueOf(roundYforvard);
+                pointYprev = "*";
             }
+                if(position>=1 && (dataSet.size()-1)-position < 1){
+                    roundYprev = Math.round(dataSet.getY(position-1).floatValue());
+                    pointYforvard = "*";
+                    pointYprev = String.valueOf(roundYprev);
+                }
+            }
+            //            holder.tvNumber.setText(pointYprev+"/"+pointYforvard);
+            holder.tvNumber.setText("-");
+            holder.tvZnach.setText(pointX);
         }
+
 
         String diff;
         if(diffSet.size()>0){
@@ -93,24 +112,26 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
                 @Override
                 public void onClick(View v) {
                     Double numberDouble = dataSet.getY(getAdapterPosition()).doubleValue();
-                    Toast.makeText(mCtx, "Позиция"+getAdapterPosition(), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(mCtx, "Размер списка"+ dataSet.size(), Toast.LENGTH_SHORT).show();
                     String number, pointYprev, pointYforvard;
                     pointYprev = "null";
                     pointYforvard = "null";
-
+                    int roundYprev, roundYforvard;
 
 
                     if(getAdapterPosition()>=1 && (dataSet.size()-1)-getAdapterPosition() >= 1){
-                        pointYforvard = (dataSet.getY(getAdapterPosition()+1).toString());
-                        pointYprev = (dataSet.getY(getAdapterPosition()-1).toString());
+                        roundYprev = Math.round(dataSet.getY(getAdapterPosition()-1).floatValue());
+                        roundYforvard = Math.round(dataSet.getY(getAdapterPosition()+1).floatValue());
+                        pointYforvard = String.valueOf(roundYforvard);
+                        pointYprev = String.valueOf(roundYprev);
                     }else{if(getAdapterPosition()<1 && (dataSet.size()-1)-getAdapterPosition() >= 1){
-                        pointYforvard = (dataSet.getY(getAdapterPosition()+1).toString());
+                        roundYforvard = Math.round(dataSet.getY(getAdapterPosition()+1).floatValue());
+                        pointYforvard = String.valueOf(roundYforvard);
                         pointYprev = "*";
                     }
                         if(getAdapterPosition()>=1 && (dataSet.size()-1)-getAdapterPosition() < 1){
+                            roundYprev = Math.round(dataSet.getY(getAdapterPosition()-1).floatValue());
                             pointYforvard = "*";
-                            pointYprev = (dataSet.getY(getAdapterPosition()-1).toString());;
+                            pointYprev = String.valueOf(roundYprev);
                         }
                     }
                     int resultY = Math.round(dataSet.getY(getAdapterPosition()).floatValue());

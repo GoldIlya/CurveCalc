@@ -163,7 +163,7 @@ public class SeriesTableActivity extends AppCompatActivity {
             yValue.setPadding(2, 0, 2, 0);
             boolean isInteger = (seriesList.get(0).getY(i).floatValue() - Math.floor(seriesList.get(0).getY(i).floatValue())) == 0;
             if (isInteger) {
-                yValue.setText(String.valueOf(seriesList.get(0).getY(i)));
+                yValue.setText(String.valueOf(Math.round(seriesList.get(0).getY(i).floatValue())));
             } else {
                 yValue.setText(" - ");
             }

@@ -78,7 +78,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
     private LinearLayout blockSdvig, blockSeries, blockEdit, blockAddPoint;
     private Button btnPlus, btnMinus;
-    private FloatingActionButton  btnEnterVal, clearListPoint, createNewSeriesButton, prevButton, nextButton, resetChanges, btnTable, appEdit, btnShiftMode;
+    private FloatingActionButton  btnEnterVal, clearListPoint, createNewSeriesButton, prevButton, nextButton, resetChanges, btnTable, appEdit;
     private EditText etEnterVal, valueSet;
     private TextView countTextView;
     private Spinner seriesSpinner;
@@ -112,7 +112,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         appEdit = findViewById(R.id.appEdit);
         btnPlus = findViewById(R.id.increment_button);
         btnMinus = findViewById(R.id.decrement_button);
-        btnShiftMode = findViewById(R.id.btnShiftMode);
+//        btnShiftMode = findViewById(R.id.btnShiftMode);
         prevButton = findViewById(R.id.prev_button);
         nextButton = findViewById(R.id.next_button);
         createNewSeriesButton = findViewById(R.id.create_new_series_button);
@@ -864,55 +864,111 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         btnTable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
-                Gson gson = new Gson();
-                String seriesListJson = gson.toJson(seriesList);
-                intent.putExtra("seriesListJson", seriesListJson);
-                startActivity(intent);
+//                Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
+//                Gson gson = new Gson();
+//                String seriesListJson = gson.toJson(seriesList);
+//                intent.putExtra("seriesListJson", seriesListJson);
+//                startActivity(intent);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
+                builder.setTitle("Выберите действие");
+                builder.setPositiveButton("Открыть таблицу", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
+                        Gson gson = new Gson();
+                        String seriesListJson = gson.toJson(seriesList);
+                        intent.putExtra("seriesListJson", seriesListJson);
+                        startActivity(intent);
+                    }
+                });
+                builder.setNegativeButton("Выбрать режим", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Inflate the custom layout
+                        View view = LayoutInflater.from(ZamerActivity.this).inflate(R.layout.dialog_input_mode, null);
+
+                        // Get the EditText and RadioGroup from the custom layout
+                        RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
+
+                        // Set the default selection for the RadioGroup
+                        if(isModeOnePoint){
+                            radioGroup.check(R.id.radioBtnOnePoint);
+                        }else{
+                            radioGroup.check(R.id.radioBtnAllPoint);
+                        }
+
+                        // Create the AlertDialog with the custom layout
+                        AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
+                                .setTitle("Выбрать режим")
+                                .setView(view)
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        int selectedId = radioGroup.getCheckedRadioButtonId();
+                                        RadioButton selectedRadioButton = view.findViewById(selectedId);
+                                        String shiftMode = selectedRadioButton.getText().toString();
+                                        Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
+                                        if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
+                                            isModeOnePoint = false;
+                                        }else{
+                                            isModeOnePoint = true;
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .create();
+
+                        dialogWithInput.show();
+                    }
+                });
+                builder.create().show();
+
             }
         });
 
-        btnShiftMode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Inflate the custom layout
-                View view = LayoutInflater.from(ZamerActivity.this).inflate(R.layout.dialog_input_mode, null);
-
-                // Get the EditText and RadioGroup from the custom layout
-                RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
-
-                // Set the default selection for the RadioGroup
-                if(isModeOnePoint){
-                    radioGroup.check(R.id.radioBtnOnePoint);
-                }else{
-                    radioGroup.check(R.id.radioBtnAllPoint);
-                }
-
-                // Create the AlertDialog with the custom layout
-                AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
-                        .setTitle("Выбрать режим")
-                        .setView(view)
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                int selectedId = radioGroup.getCheckedRadioButtonId();
-                                RadioButton selectedRadioButton = view.findViewById(selectedId);
-                                String shiftMode = selectedRadioButton.getText().toString();
-                                Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
-                                if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
-                                    isModeOnePoint = false;
-                                }else{
-                                    isModeOnePoint = true;
-                                }
-                            }
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .create();
-
-                dialogWithInput.show();
-            }
-        });
+//        btnShiftMode.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Inflate the custom layout
+//                View view = LayoutInflater.from(ZamerActivity.this).inflate(R.layout.dialog_input_mode, null);
+//
+//                // Get the EditText and RadioGroup from the custom layout
+//                RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
+//
+//                // Set the default selection for the RadioGroup
+//                if(isModeOnePoint){
+//                    radioGroup.check(R.id.radioBtnOnePoint);
+//                }else{
+//                    radioGroup.check(R.id.radioBtnAllPoint);
+//                }
+//
+//                // Create the AlertDialog with the custom layout
+//                AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
+//                        .setTitle("Выбрать режим")
+//                        .setView(view)
+//                        .setCancelable(false)
+//                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                int selectedId = radioGroup.getCheckedRadioButtonId();
+//                                RadioButton selectedRadioButton = view.findViewById(selectedId);
+//                                String shiftMode = selectedRadioButton.getText().toString();
+//                                Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
+//                                if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
+//                                    isModeOnePoint = false;
+//                                }else{
+//                                    isModeOnePoint = true;
+//                                }
+//                            }
+//                        })
+//                        .setNegativeButton("Cancel", null)
+//                        .create();
+//
+//                dialogWithInput.show();
+//            }
+//        });
 
     }
 
@@ -1018,8 +1074,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         if(seriesSpinner.getSelectedItemPosition()==0 || seriesList.size() == 1){
             blockEdit.setVisibility(View.VISIBLE);
             TextView numberEdit = findViewById(R.id.numberEdit);
+            Double roundValue = Double.parseDouble(value);
             numberEdit.setText(" № "+ number+" ");
-            valueSet.setText(value);
+            valueSet.setText(String.valueOf(Math.round(roundValue)));
             // Create a new data point with the X value as the current count and the Y value as the clicked item's value
             plot.clear();
             highlightedPoint = new SimpleXYSeries("");
@@ -1213,14 +1270,14 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             blockSdvig.setVisibility(View.GONE);
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.VISIBLE);
-            btnShiftMode.setVisibility(View.GONE);
+//            btnShiftMode.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.GONE);
 
         }else{
             pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
             recyclerView.setAdapter(pointAdapterForDiff);
-            btnShiftMode.setVisibility(View.VISIBLE);
+//            btnShiftMode.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.GONE);
@@ -1257,8 +1314,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
     private void resetCount(){
-        count = 0;
-        countTextView.setText(String.valueOf(count));
+        if(isClick){
+            count = 0;
+            countTextView.setText(String.valueOf(count));
+        }
     }
 
 
