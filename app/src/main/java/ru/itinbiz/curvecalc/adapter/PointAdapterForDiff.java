@@ -22,7 +22,7 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
 
 
     public interface OnItemClickListener {
-        void onItemClick(String number, String value, int index);
+        void onItemClick(String number, Double numberDouble, String value, int index);
     }
 
 
@@ -53,14 +53,19 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
         }else{
             diff = "";
         }
-        if (isInteger){
-            holder.tvNumber.setText(pointY+" ");
-            holder.tvZnach.setText(pointX+" ");
+        if(isInteger){
+            holder.tvNumber.setText(pointY);
+            holder.tvZnach.setText(" "+pointX);
             holder.tvDiff.setText(diff);
-        }else{
-            holder.tvNumber.setText("- ");
-            holder.tvZnach.setText(pointX+" ");
-            holder.tvDiff.setText(diff);
+        }
+        if(position >= 1 && position < dataSet.size()-1){
+            String pointYprev = String.valueOf(Math.round(dataSet.getY(position-1).floatValue()));
+            String pointYforvard = String.valueOf(Math.round(dataSet.getY(position+1).floatValue()));
+            if(!isInteger){
+                holder.tvNumber.setText(pointYprev+"/"+pointYforvard);
+                holder.tvZnach.setText(pointX);
+                holder.tvDiff.setText(diff);
+            }
         }
 
         if(!diff.equals("0.0")){
@@ -102,14 +107,23 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String number = String.valueOf(dataSet.getY(getAdapterPosition()).floatValue());
+                    Double numberDouble = dataSet.getY(getAdapterPosition()).doubleValue();
+                    String number;
+                    String pointYprev = String.valueOf(Math.round(dataSet.getY(getAdapterPosition()-1).floatValue()));
+                    String pointYforvard = String.valueOf(Math.round(dataSet.getY(getAdapterPosition()+1).floatValue()));
+                    int resultY = Math.round(dataSet.getY(getAdapterPosition()).floatValue());
+                    String pointY = String.valueOf(resultY);
+                    boolean isInteger = (dataSet.getY(getAdapterPosition()).floatValue() - Math.floor(dataSet.getY(getAdapterPosition()).floatValue())) == 0;
+                    if(isInteger){
+                        number = pointY;
+                    }else{
+                        number= pointYprev+"/"+pointYforvard;
+                    }
                     String value = String.valueOf(dataSet.getX(getAdapterPosition()).floatValue());
                     int index = getAdapterPosition();
-
                     selectedIndex = index;
                     notifyDataSetChanged();
-
-                    onItemClickListener.onItemClick(number, value, index);
+                    onItemClickListener.onItemClick(number, numberDouble, value, index);
                 }
             });
         }

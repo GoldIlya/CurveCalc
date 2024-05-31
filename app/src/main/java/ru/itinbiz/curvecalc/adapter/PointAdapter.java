@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,10 +19,11 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     private Context mCtx;
     private SimpleXYSeries dataSet, diffSet;
     private OnItemClickListener onItemClickListener;
+    private int selectedIndex = -1;
 
 
     public interface OnItemClickListener {
-        void onItemClick(String number, String value, int index);
+        void onItemClick(String number, Double numberDouble, String value, int index);
     }
 
 
@@ -43,20 +45,32 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         int resultY = Math.round(dataSet.getY(position).floatValue());
         String pointX =  String.valueOf(dataSet.getX(position).floatValue());
         String pointY = String.valueOf(resultY);
+        boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
+        if(isInteger){
+            holder.tvNumber.setText(pointY);
+            holder.tvZnach.setText(" "+pointX);
+        }
+        if(position >= 1 && position < dataSet.size()-1){
+            String pointYprev = String.valueOf(Math.round(dataSet.getY(position-1).floatValue()));
+            String pointYforvard = String.valueOf(Math.round(dataSet.getY(position+1).floatValue()));
+            if(!isInteger){
+                holder.tvNumber.setText(pointYprev+"/"+pointYforvard);
+                holder.tvZnach.setText(pointX);
+            }
+        }
+
         String diff;
         if(diffSet.size()>0){
             diff = String.valueOf(diffSet.getX(position).floatValue());
         }else{
             diff = "";
         }
-        boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
-        if(isInteger){
-            holder.tvNumber.setText(pointY);
-            holder.tvZnach.setText(" "+pointX);
-        }else {
-            holder.tvNumber.setText("- ");
-            holder.tvZnach.setText(pointX);
 
+        // Highlight the selected item
+        if (position == selectedIndex) {
+            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
+        } else {
+            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
         }
     }
 
@@ -78,10 +92,40 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String number = String.valueOf(dataSet.getY(getAdapterPosition()).floatValue());
-                    String value = String.valueOf(Math.round(dataSet.getX(getAdapterPosition()).floatValue()));
+                    Double numberDouble = dataSet.getY(getAdapterPosition()).doubleValue();
+                    Toast.makeText(mCtx, "Позиция"+getAdapterPosition(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mCtx, "Размер списка"+ dataSet.size(), Toast.LENGTH_SHORT).show();
+                    String number, pointYprev, pointYforvard;
+                    pointYprev = "null";
+                    pointYforvard = "null";
+
+
+
+                    if(getAdapterPosition()>=1 && (dataSet.size()-1)-getAdapterPosition() >= 1){
+                        pointYforvard = (dataSet.getY(getAdapterPosition()+1).toString());
+                        pointYprev = (dataSet.getY(getAdapterPosition()-1).toString());
+                    }else{if(getAdapterPosition()<1 && (dataSet.size()-1)-getAdapterPosition() >= 1){
+                        pointYforvard = (dataSet.getY(getAdapterPosition()+1).toString());
+                        pointYprev = "*";
+                    }
+                        if(getAdapterPosition()>=1 && (dataSet.size()-1)-getAdapterPosition() < 1){
+                            pointYforvard = "*";
+                            pointYprev = (dataSet.getY(getAdapterPosition()-1).toString());;
+                        }
+                    }
+                    int resultY = Math.round(dataSet.getY(getAdapterPosition()).floatValue());
+                    String pointY = String.valueOf(resultY);
+                    boolean isInteger = (dataSet.getY(getAdapterPosition()).floatValue() - Math.floor(dataSet.getY(getAdapterPosition()).floatValue())) == 0;
+                    if(isInteger){
+                        number = pointY;
+                    }else{
+                        number= pointYprev+"/"+pointYforvard;
+                    }
+                    String value = String.valueOf(dataSet.getX(getAdapterPosition()).floatValue());
                     int index = getAdapterPosition();
-                    onItemClickListener.onItemClick(number, value, index);
+                    selectedIndex = index;
+                    notifyDataSetChanged();
+                    onItemClickListener.onItemClick(number, numberDouble, value, index);
                 }
             });
         }

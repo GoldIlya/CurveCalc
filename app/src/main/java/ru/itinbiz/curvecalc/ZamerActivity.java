@@ -6,11 +6,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
-import android.graphics.Paint;
-import android.graphics.PointF;
-import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputType;
@@ -36,13 +32,10 @@ import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.androidplot.ui.SeriesRenderer;
 import com.androidplot.util.PixelUtils;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
-import com.androidplot.xy.LineAndPointRenderer;
 import com.androidplot.xy.PanZoom;
-import com.androidplot.xy.PointLabelFormatter;
 import com.androidplot.xy.PointLabeler;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.StepMode;
@@ -62,12 +55,14 @@ import ru.itinbiz.curvecalc.adapter.PointAdapterForDiff;
 import ru.itinbiz.curvecalc.data.AppDatabase;
 import ru.itinbiz.curvecalc.data.MeasurementDao;
 import ru.itinbiz.curvecalc.model.Measurement;
+import ru.itinbiz.curvecalc.service.MyLineAndPointFormatter;
 
 public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnItemClickListener, PointAdapterForDiff.OnItemClickListener {
 
     int measurementIdDb;
     boolean isNew = false;
     boolean isModeOnePoint = true;
+    boolean isClick = false;
     private XYPlot plot;
     private SimpleXYSeries series, curSeries, curSeriesInt, curSeriesDouble,  highlightedPoint;
     private RecyclerView recyclerView;
@@ -82,8 +77,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private int countSeries = 0;
 
     private LinearLayout blockSdvig, blockSeries, blockEdit, blockAddPoint;
-    private Button btnPlus, btnMinus, btnShiftMode, btnOnSdvig;
-    private FloatingActionButton  btnEnterVal, clearListPoint, createNewSeriesButton, prevButton, nextButton, resetChanges, btnTable, appEdit;
+    private Button btnPlus, btnMinus;
+    private FloatingActionButton  btnEnterVal, clearListPoint, createNewSeriesButton, prevButton, nextButton, resetChanges, btnTable, appEdit, btnShiftMode;
     private EditText etEnterVal, valueSet;
     private TextView countTextView;
     private Spinner seriesSpinner;
@@ -117,7 +112,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         appEdit = findViewById(R.id.appEdit);
         btnPlus = findViewById(R.id.increment_button);
         btnMinus = findViewById(R.id.decrement_button);
-        btnOnSdvig = findViewById(R.id.btnOnSdvig);
         btnShiftMode = findViewById(R.id.btnShiftMode);
         prevButton = findViewById(R.id.prev_button);
         nextButton = findViewById(R.id.next_button);
@@ -136,6 +130,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             clearListPoint.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.GONE);
         }else{
+            blockSdvig.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.GONE);
@@ -255,8 +250,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         });
 
 
-
-
         seriesFormatDouble.getLinePaint().setPathEffect(new DashPathEffect(new float[] {
                 // always use DP when specifying pixel sizes, to keep things consistent across devices:
                 PixelUtils.dpToPix(10),
@@ -296,7 +289,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 return "";
             }
         });
-
 
 
         // Add the series to the plot with the formatter
@@ -397,7 +389,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
             }
         });
-
 
 
         etEnterVal.setOnKeyListener(new View.OnKeyListener() {
@@ -549,14 +540,34 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             public void onClick(View v) {
                 int currentIndex = seriesList.indexOf(curSeries);
                 if((currentIndex+1)>= seriesList.size()){
-                    plusPoint();
+                    if(isModeOnePoint){
+                        if(isClick){
+                            resetChangesList();
+                            plusPoint();
+                            isClick = false;
+                        }else{
+                            plusPoint();
+                        }
+                    }else{
+                        plusPoint();
+                    }
                 } else{
                     AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
                     builder.setTitle("Данное действие удалит все шаги.");
                     builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            plusPoint();
+                            if(isModeOnePoint){
+                                if(isClick){
+                                    resetChangesList();
+                                    plusPoint();
+                                    isClick = false;
+                                }else{
+                                    plusPoint();
+                                }
+                            }else{
+                                plusPoint();
+                            }
                             String[] newSeriesArray = getSeriesArray();
                             ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
                             newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -581,14 +592,35 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
                 int currentIndex = seriesList.indexOf(curSeries);
                 if((currentIndex+1)>= seriesList.size()){
-                    minusPoint();
+                 if(isModeOnePoint){
+                     if(isClick){
+                         resetChangesList();
+                         minusPoint();
+                         isClick = false;
+                     }else{
+                         minusPoint();
+                     }
+                 }else{
+                     minusPoint();
+                 }
+
                 } else{
                     AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
                     builder.setTitle("Данное действие удалит все шаги.");
                     builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            minusPoint();
+                            if(isModeOnePoint){
+                                if(isClick){
+                                    resetChangesList();
+                                    minusPoint();
+                                    isClick = false;
+                                }else{
+                                    minusPoint();
+                                }
+                            }else{
+                                minusPoint();
+                            }
                             String[] newSeriesArray = getSeriesArray();
                             ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
                             newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -856,8 +888,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     radioGroup.check(R.id.radioBtnAllPoint);
                 }
 
-
-
                 // Create the AlertDialog with the custom layout
                 AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
                         .setTitle("Выбрать режим")
@@ -872,12 +902,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
                                 if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
                                     isModeOnePoint = false;
-                                    btnOnSdvig.setVisibility(View.GONE);
-                                    blockSdvig.setVisibility(View.VISIBLE);
                                 }else{
                                     isModeOnePoint = true;
-                                    btnOnSdvig.setVisibility(View.VISIBLE);
-                                    blockSdvig.setVisibility(View.GONE);
                                 }
                             }
                         })
@@ -888,18 +914,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         });
 
-        btnOnSdvig.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                resetChangesList();
-                btnOnSdvig.setVisibility(View.GONE);
-                blockSdvig.setVisibility(View.VISIBLE);
-            }
-        });
-
     }
-
-
 
     private long saveDataToDatabase() {
         class SaveDataToDatabase extends AsyncTask<Void, Void, Long> {
@@ -981,9 +996,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         uM.execute();
     }
 
-
-
-
     //Метод добавление точки в список
     private void addDataPoint(float xCoordinate, float yCoordinate) {
         // Create a new data point and add it to the series
@@ -1001,8 +1013,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
     //Метод нажатия на элементы списка
-    public void onItemClick(String number, String value, int index) {
-
+    public void onItemClick(String number,Double numberDouble, String value, int index) {
+            isClick = true;
         if(seriesSpinner.getSelectedItemPosition()==0 || seriesList.size() == 1){
             blockEdit.setVisibility(View.VISIBLE);
             TextView numberEdit = findViewById(R.id.numberEdit);
@@ -1011,7 +1023,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             // Create a new data point with the X value as the current count and the Y value as the clicked item's value
             plot.clear();
             highlightedPoint = new SimpleXYSeries("");
-            highlightedPoint.addFirst(Float.parseFloat(value),Float.parseFloat(number));
+            highlightedPoint.addFirst(Float.parseFloat(value),numberDouble);
             if(measurementUnitDB.equals("Точки и полуточки 2")){
                 pointAndDoublePoint();
             }else{
@@ -1026,13 +1038,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             curElement = index;
             resetCount();
         }else{
-            if(isModeOnePoint){
-                btnOnSdvig.setVisibility(View.VISIBLE);
-                blockSdvig.setVisibility(View.GONE);
-            }else{
-                btnOnSdvig.setVisibility(View.GONE);
-                blockSdvig.setVisibility(View.VISIBLE);
-            }
+            blockSdvig.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
             TextView numberPP = findViewById(R.id.numberPP);
             numberPP.setText(" № "+ number+" ");
@@ -1041,7 +1047,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             // Create a new data point with the X value as the current count and the Y value as the clicked item's value
             plot.clear();
             highlightedPoint = new SimpleXYSeries("");
-            highlightedPoint.addFirst(Double.parseDouble(value),Double.parseDouble(number));
+            highlightedPoint.addFirst(Double.parseDouble(value),numberDouble);
             if(measurementUnitDB.equals("Точки и полуточки 2")){
                 pointAndDoublePoint();
             }else{
@@ -1157,8 +1163,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         return differenceSeries;
     }
 
-
-
     private SimpleXYSeries calculateDiffDouble() {
         SimpleXYSeries differenceSeries = new SimpleXYSeries("Difference");
         SimpleXYSeries series1Double = new SimpleXYSeries("DiffDouble");
@@ -1209,6 +1213,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             blockSdvig.setVisibility(View.GONE);
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.VISIBLE);
+            btnShiftMode.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.GONE);
 
@@ -1219,10 +1224,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             blockEdit.setVisibility(View.GONE);
             blockAddPoint.setVisibility(View.GONE);
             clearListPoint.setVisibility(View.GONE);
-            if(!isModeOnePoint){
-                btnOnSdvig.setVisibility(View.GONE);
-                blockSdvig.setVisibility(View.VISIBLE);
-            }
+            blockSdvig.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.VISIBLE);
         }
         plot.redraw();
@@ -1400,7 +1402,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 curSeries.setX(curX2, curElement-1);
             }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
-                curSeries.setX(curX1, curElement+2);
+                curSeries.setX(curX1, curElement+1);
             }
                 if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
@@ -1414,7 +1416,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 curSeries.setX(curX1, curElement+2);
                 Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
                 curSeries.setX(curX2, curElement-2);
-            }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 2){
+            }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
                 Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
                 curSeries.setX(curX1, curElement+2);
             }
@@ -1543,68 +1545,4 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         plot.redraw();
     }
 
-}
-
-/**
- * A LineAndPointRenderer that rotates it's point labels -90 degrees.
- */
-class MyLineAndPointRenderer extends LineAndPointRenderer<MyLineAndPointFormatter> {
-
-    public MyLineAndPointRenderer(XYPlot plot) {
-        super(plot);
-    }
-
-    // Basically just copy the entire renderPoints implementation and add a rotation as shown below
-    @Override
-    protected void renderPoints(Canvas canvas, RectF plotArea, XYSeries series, int iStart, int iEnd, List<PointF> points,
-                                LineAndPointFormatter formatter) {
-        if (formatter.hasVertexPaint() || formatter.hasPointLabelFormatter()) {
-            final Paint vertexPaint = formatter.hasVertexPaint() ? formatter.getVertexPaint() : null;
-            final boolean hasPointLabelFormatter = formatter.hasPointLabelFormatter();
-            final PointLabelFormatter plf = hasPointLabelFormatter ? formatter.getPointLabelFormatter() : null;
-            final PointLabeler pointLabeler = hasPointLabelFormatter ? formatter.getPointLabeler() : null;
-            for(int i = iStart; i < iEnd; i++) {
-                PointF p = points.get(i);
-                if(p != null) {
-
-                    if (vertexPaint != null) {
-                        canvas.drawPoint(p.x, p.y, vertexPaint);
-                    }
-
-                    if (pointLabeler != null) {
-                        // this is where we rotate the text:
-                        final int canvasState = canvas.save();
-                        try {
-                            canvas.rotate(180, p.x, p.y);
-                            canvas.scale(-1, 1);
-                            canvas.drawText(pointLabeler.getLabel(series, i),
-                                    -p.x + plf.hOffset, p.y + plf.vOffset, plf.getTextPaint());
-                        } finally {
-                            canvas.restoreToCount(canvasState);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-}
-
-class MyLineAndPointFormatter extends LineAndPointFormatter {
-
-    // if you dont use configurator you can omit this constructor.  this example uses it
-    // tho so here it is.
-    public MyLineAndPointFormatter(Context context, int xmlCfgId) {
-        super(context, xmlCfgId);
-    }
-
-    @Override
-    public Class<? extends SeriesRenderer> getRendererClass() {
-        return MyLineAndPointRenderer.class;
-    }
-
-    @Override
-    public SeriesRenderer doGetRendererInstance(XYPlot plot) {
-        return new MyLineAndPointRenderer(plot);
-    }
 }

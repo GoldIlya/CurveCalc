@@ -14,9 +14,9 @@
                     android:id="@+id/tvNumber"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minWidth="30dp"
-                    android:text="20"
-                    android:textSize="16dp"
+                    android:minWidth="45dp"
+                    android:text="20/30"
+                    android:textSize="15dp"
                     android:padding="2dp"
                     android:background="@drawable/border"
                     />
