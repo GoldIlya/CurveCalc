@@ -108,4 +108,12 @@ public class AddZamerActivity extends AppCompatActivity {
         gZamer.execute();
     }
 
+
+
+    public void onBackPressed() {
+        Intent intent = new Intent(AddZamerActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 }

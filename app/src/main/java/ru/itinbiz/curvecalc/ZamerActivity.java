@@ -557,6 +557,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
+
                             if(isModeOnePoint){
                                 if(isClick){
                                     resetChangesList();
@@ -621,6 +622,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                             }else{
                                 minusPoint();
                             }
+
                             String[] newSeriesArray = getSeriesArray();
                             ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
                             newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -671,7 +673,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     }
                     createListPoint();
                     resetChangesList();
-                    resetCount();
+                    resetCountBtn();
                     if(isNew){
                         saveDataToDatabase();
                     }else{
@@ -709,7 +711,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                             }
                             createListPoint();
                             resetChangesList();
-                            resetCount();
+                            resetCountBtn();
                             if(isNew){
                                 saveDataToDatabase();
                             }else{
@@ -838,6 +840,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 int currentIndex = seriesList.indexOf(curSeries);
                 if((currentIndex+1)>= seriesList.size()){
                     resetChangesList();
+                    resetCountBtn();
                 }else{
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
@@ -846,6 +849,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             resetChangesList();
+                            resetCountBtn();
                         }
                     });
                     builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -1274,6 +1278,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             clearListPoint.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.GONE);
 
+
         }else{
             pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
             recyclerView.setAdapter(pointAdapterForDiff);
@@ -1283,6 +1288,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             clearListPoint.setVisibility(View.GONE);
             blockSdvig.setVisibility(View.VISIBLE);
             resetChanges.setVisibility(View.VISIBLE);
+
         }
         plot.redraw();
     }
@@ -1318,6 +1324,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             count = 0;
             countTextView.setText(String.valueOf(count));
         }
+    }
+
+    private void resetCountBtn(){
+            count = 0;
+            countTextView.setText(String.valueOf(count));
     }
 
 

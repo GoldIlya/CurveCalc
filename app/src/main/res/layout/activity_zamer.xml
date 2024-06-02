@@ -70,7 +70,7 @@
                     style="@style/FullScreenGraph"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
+                    android:layout_weight="2.1"
                     android:rotationX="180"
                     app:domainOriginLineColor="@color/ap_transparent"
                     app:gridBackgroundColor="@color/white"
@@ -117,7 +117,7 @@
                             android:layout_marginStart="8dp"
                             android:layout_marginEnd="8dp"
                             android:backgroundTint="@color/green"
-                            android:src="@android:drawable/ic_input_add"
+                            android:src="@drawable/ic_add_circle_white_48dp"
                             android:tint="@color/green"
                             app:fabSize="normal" />
 
