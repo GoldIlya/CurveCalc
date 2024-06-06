@@ -13,6 +13,7 @@ public class Measurement {
     private double countPoint;
     private int countSeries;
     private String seriesListJson; // Save the seriesList as a JSON string
+    private String baseMeasurJson;
 
     // Getters and setters
 
@@ -55,4 +56,8 @@ public class Measurement {
     public void setSeriesListJson(String seriesListJson) {
         this.seriesListJson = seriesListJson;
     }
+
+    public String getBaseMeasurJson() {return baseMeasurJson;}
+
+    public void setBaseMeasurJson(String baseMeasurJson) {this.baseMeasurJson = baseMeasurJson;}
 }

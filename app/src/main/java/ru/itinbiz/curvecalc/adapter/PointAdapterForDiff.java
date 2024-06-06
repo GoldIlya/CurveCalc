@@ -46,20 +46,35 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
         int resultY = Math.round(dataSet.getY(position).floatValue());
         String pointX =  String.valueOf(dataSet.getX(position).floatValue());
         String pointY = String.valueOf(resultY);
-        String diff;
+        Double diff;
 
 
         if(diffSet.size()>0){
-            diff = String.valueOf(diffSet.getX(position).floatValue());
+            diff = diffSet.getX(position).doubleValue();
         }else{
-            diff = "";
+            diff = 0.0;
         }
 
         boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
+
+        if(diff!=0.0 && isInteger){
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.green));
+            holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.green));
+            holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.green));
+
+
+        }if(diff!=0.0 && !isInteger){
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.blue));
+            holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.blue));
+            holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.blue));
+        }
+
+
+
         if(isInteger){
             holder.tvNumber.setText(pointY);
             holder.tvZnach.setText(" "+pointX);
-            holder.tvDiff.setText(diff);
+            holder.tvDiff.setText(String.valueOf(diff));
         }else{
             int roundYprev, roundYforvard;
             String number, pointYprev, pointYforvard;
@@ -87,19 +102,13 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
 //            holder.tvNumber.setText(pointYprev+"/"+pointYforvard);
             holder.tvNumber.setText("-");
             holder.tvZnach.setText(pointX);
-            holder.tvDiff.setText(diff);
+            holder.tvDiff.setText(String.valueOf(diff));
         }
 
-        if(!diff.equals("0.0")){
-            if(isInteger){
-                holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.green));
-                holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.green));
-                holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.green));
-            }else {
-                holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.blue));
-                holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.blue));
-                holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.blue));
-            }
+        if(diff == 0.0) {
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.black));
+            holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.black));
+            holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.black));
         }
 
         // Highlight the selected item

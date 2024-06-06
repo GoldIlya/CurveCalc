@@ -1070,6 +1070,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }else{
             countPoint++;
         }
+        int lastPosition = recyclerView.getAdapter().getItemCount()-1;
+        recyclerView.scrollToPosition(lastPosition);
+        etEnterVal.setText("");
     }
 
     //Метод нажатия на элементы списка
@@ -1521,7 +1524,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         updateCountText();
         calculateDifference();
         countSeries = currentIndex;
-
+        recyclerView.scrollToPosition(curElement);
     }
 
     private void minusPoint(){
@@ -1584,6 +1587,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         updateCountText();
         calculateDifference();
         countSeries = currentIndex;
+        recyclerView.scrollToPosition(curElement);
     }
 
 
