@@ -11,6 +11,8 @@ import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -23,9 +25,11 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -36,6 +40,7 @@ import com.google.gson.Gson;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
@@ -70,15 +75,19 @@ public class SeriesTableActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_series_table);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         // Get the seriesList data from the Intent
         Intent intent = getIntent();
         String seriesListJson = intent.getStringExtra("seriesListJson");
         Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
         seriesList = gson.fromJson(seriesListJson, seriesListType);
+//        btnExcel = findViewById(R.id.btnExcel);
         fn_permission();
-        btnExcel = findViewById(R.id.btnExcel);
         // Initialize UI elements
+
         seriesTable = new TableLayout(this);
 
         // Wrap the TableLayout in a HorizontalScrollView and a ScrollView
@@ -99,16 +108,16 @@ public class SeriesTableActivity extends AppCompatActivity {
         // Create the table
         createTable(seriesTable, seriesList);
 
-        btnExcel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (boolean_permission) {
-                    Toast.makeText(SeriesTableActivity.this, "Excell", Toast.LENGTH_SHORT).show();
-                    createAndSaveExcelTable();
-                    openPath();
-                }
-            }
-        });
+//        btnExcel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (boolean_permission) {
+//                    Toast.makeText(SeriesTableActivity.this, "Excell", Toast.LENGTH_SHORT).show();
+//                    createAndSaveExcelTable();
+//                    openPath();
+//                }
+//            }
+//        });
 
         // Initialize gesture detectors
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -158,8 +167,9 @@ public class SeriesTableActivity extends AppCompatActivity {
         scrollView.setOnTouchListener(touchListener);
 
 
-
     }
+
+
 
     private void updatePaddingAndGravity() {
         int paddingInDp = 100;
@@ -290,17 +300,67 @@ public class SeriesTableActivity extends AppCompatActivity {
     }
 
 
-    private void createAndSaveExcelTable() {
+//    private void createAndSaveExcelTable() {
+//
+//        Row headerRow = sheet.createRow(0);
+//        Cell xHeader = headerRow.createCell(0);
+//        xHeader.setCellValue("Номер");
+//        for (int i = 0; i < seriesList.size(); i++) {
+//            Cell yHeader = headerRow.createCell(i + 1);
+//            if (i == 0) {
+//                yHeader.setCellValue("Промер");
+//            } else {
+//                yHeader.setCellValue("Шаг " + i);
+//            }
+//        }
+//
+//        // Add table rows for each data point in the seriesList
+//        int numRows = seriesList.get(0).size();
+//        for (int i = 0; i < numRows; i++) {
+//            Row dataRow = sheet.createRow(i + 1);
+//            Cell yValue = dataRow.createCell(0);
+//            boolean isInteger = (seriesList.get(0).getY(i).doubleValue() - Math.floor(seriesList.get(0).getY(i).doubleValue())) == 0;
+//            if (isInteger) {
+//                yValue.setCellValue(seriesList.get(0).getY(i).doubleValue());
+//
+//            } else {
+//                yValue.setCellValue(" - ");
+//
+//            }
+//            for (int j = 0; j < seriesList.size(); j++) {
+//                Cell xValue = dataRow.createCell(j + 1);
+//                if (j > 0) {
+//                    SimpleXYSeries diff = calculateDifference(seriesList.get(j - 1), seriesList.get(j), j);
+//                    Double iDiff = diff.getX(i).doubleValue();
+//                    if (iDiff!= 0.0) {
+//                        if (iDiff > 0) {
+//                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  +" + iDiff);
+//
+//                        } else {
+//                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  " + iDiff);
+//
+//                        }
+//                    } else {
+//                        xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
+//                    }
+//                } else {
+//                    xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
+//                }
+//            }
+//        }
+//
+//    }
 
+    private void createAndSaveExcelTable() {
         Row headerRow = sheet.createRow(0);
         Cell xHeader = headerRow.createCell(0);
         xHeader.setCellValue("Номер");
-        for (int i = 0; i < seriesList.size(); i++) {
-            Cell yHeader = headerRow.createCell(i + 1);
-            if (i == 0) {
+        for (SimpleXYSeries series : seriesList) {
+            Cell yHeader = headerRow.createCell(seriesList.indexOf(series) + 1);
+            if (seriesList.indexOf(series) == 0) {
                 yHeader.setCellValue("Промер");
             } else {
-                yHeader.setCellValue("Шаг " + i);
+                yHeader.setCellValue("Шаг " + seriesList.indexOf(series));
             }
         }
 
@@ -312,34 +372,49 @@ public class SeriesTableActivity extends AppCompatActivity {
             boolean isInteger = (seriesList.get(0).getY(i).doubleValue() - Math.floor(seriesList.get(0).getY(i).doubleValue())) == 0;
             if (isInteger) {
                 yValue.setCellValue(seriesList.get(0).getY(i).doubleValue());
-
             } else {
                 yValue.setCellValue(" - ");
-
             }
-            for (int j = 0; j < seriesList.size(); j++) {
-                Cell xValue = dataRow.createCell(j + 1);
-                if (j > 0) {
-                    SimpleXYSeries diff = calculateDifference(seriesList.get(j - 1), seriesList.get(j), j);
+
+            // Set the cell style for the y-value cell
+//            CellStyle yValueStyle = workbook.createCellStyle();
+//            yValueStyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+//            yValueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            yValue.setCellStyle(yValueStyle);
+
+            for (SimpleXYSeries series : seriesList) {
+                int indexSeries = seriesList.indexOf(series);
+                Cell xValue = dataRow.createCell(indexSeries + 1);
+                if (indexSeries > 0) {
+                    SimpleXYSeries diff = calculateDifference(seriesList.get(indexSeries - 1), series, indexSeries);
                     Double iDiff = diff.getX(i).doubleValue();
-                    if (iDiff!= 0.0) {
+                    if (iDiff != 0.0) {
                         if (iDiff > 0) {
-                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  +" + iDiff);
-
+                            xValue.setCellValue(series.getX(i).doubleValue() + "  +" + iDiff);
                         } else {
-                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  " + iDiff);
-
+                            xValue.setCellValue(series.getX(i).doubleValue() + "  " + iDiff);
                         }
+
+                        // Set the cell style for the x-value cell
+//                        CellStyle xValueStyle = workbook.createCellStyle();
+//                        Font font = workbook.createFont();
+                        if (isInteger) {
+//                            font.setColor(IndexedColors.GREEN.getIndex());
+                        } else {
+//                            font.setColor(IndexedColors.BLUE.getIndex());
+                        }
+//                        xValueStyle.setFont(font);
+//                        xValue.setCellStyle(xValueStyle);
                     } else {
-                        xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
+                        xValue.setCellValue(series.getX(i).doubleValue());
                     }
                 } else {
-                    xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
+                    xValue.setCellValue(series.getX(i).doubleValue());
                 }
             }
         }
-
     }
+
 
 
 
@@ -374,4 +449,23 @@ public class SeriesTableActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_series_table, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_excel) {
+            // Handle the Excel button click
+            createAndSaveExcelTable();
+            openPath();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    
 }
