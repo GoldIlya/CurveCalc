@@ -882,7 +882,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
                         Gson gson = new Gson();
                         String seriesListJson = gson.toJson(seriesList);
-                        intent.putExtra("seriesListJson", seriesListJson);
+                        String nameZamer = zamerNameDB.toString();
+                        intent.putExtra("seriesListJson", seriesListJson).putExtra("nameZamer", nameZamer);
                         startActivity(intent);
                     }
                 });

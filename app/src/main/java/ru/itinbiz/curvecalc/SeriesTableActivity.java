@@ -2,20 +2,29 @@ package ru.itinbiz.curvecalc;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -24,12 +33,10 @@ import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -40,15 +47,14 @@ import com.google.gson.Gson;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +62,14 @@ import java.util.List;
 public class SeriesTableActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS = 1;
     private static final int REQUEST_CODE_CREATE_DOCUMENT = 100;
+    private static final int REQUEST_CODE_SAVE_PDF_DOCUMENT = 101;
+
+    private static final int REQUEST_CODE_CREATE_PDF_DOCUMENT = 200 ;
+
+
 
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
+    private String nameZamer;
     private TableLayout seriesTable;
     private float scaleFactor = 1.0f;
     private ScaleGestureDetector scaleGestureDetector;
@@ -65,9 +77,12 @@ public class SeriesTableActivity extends AppCompatActivity {
     private HorizontalScrollView horizontalScrollView;
     private ScrollView scrollView;
     private Button btnExcel;
-    HSSFWorkbook workbook = new HSSFWorkbook();
+    Workbook workbook = new HSSFWorkbook();
     Sheet sheet = workbook.createSheet("Sheet1");
-
+    PdfDocument document = new PdfDocument();
+    Bitmap bitmap, bitmap1;
+    Uri targetPdf;
+    boolean boolean_save;
     boolean boolean_permission;
 
     @Override
@@ -84,6 +99,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
         seriesList = gson.fromJson(seriesListJson, seriesListType);
+        nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
 //        btnExcel = findViewById(R.id.btnExcel);
         fn_permission();
         // Initialize UI elements
@@ -300,57 +316,6 @@ public class SeriesTableActivity extends AppCompatActivity {
     }
 
 
-//    private void createAndSaveExcelTable() {
-//
-//        Row headerRow = sheet.createRow(0);
-//        Cell xHeader = headerRow.createCell(0);
-//        xHeader.setCellValue("Номер");
-//        for (int i = 0; i < seriesList.size(); i++) {
-//            Cell yHeader = headerRow.createCell(i + 1);
-//            if (i == 0) {
-//                yHeader.setCellValue("Промер");
-//            } else {
-//                yHeader.setCellValue("Шаг " + i);
-//            }
-//        }
-//
-//        // Add table rows for each data point in the seriesList
-//        int numRows = seriesList.get(0).size();
-//        for (int i = 0; i < numRows; i++) {
-//            Row dataRow = sheet.createRow(i + 1);
-//            Cell yValue = dataRow.createCell(0);
-//            boolean isInteger = (seriesList.get(0).getY(i).doubleValue() - Math.floor(seriesList.get(0).getY(i).doubleValue())) == 0;
-//            if (isInteger) {
-//                yValue.setCellValue(seriesList.get(0).getY(i).doubleValue());
-//
-//            } else {
-//                yValue.setCellValue(" - ");
-//
-//            }
-//            for (int j = 0; j < seriesList.size(); j++) {
-//                Cell xValue = dataRow.createCell(j + 1);
-//                if (j > 0) {
-//                    SimpleXYSeries diff = calculateDifference(seriesList.get(j - 1), seriesList.get(j), j);
-//                    Double iDiff = diff.getX(i).doubleValue();
-//                    if (iDiff!= 0.0) {
-//                        if (iDiff > 0) {
-//                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  +" + iDiff);
-//
-//                        } else {
-//                            xValue.setCellValue(seriesList.get(j).getX(i).doubleValue() + "  " + iDiff);
-//
-//                        }
-//                    } else {
-//                        xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
-//                    }
-//                } else {
-//                    xValue.setCellValue(seriesList.get(j).getX(i).doubleValue());
-//                }
-//            }
-//        }
-//
-//    }
-
     private void createAndSaveExcelTable() {
         Row headerRow = sheet.createRow(0);
         Cell xHeader = headerRow.createCell(0);
@@ -376,11 +341,8 @@ public class SeriesTableActivity extends AppCompatActivity {
                 yValue.setCellValue(" - ");
             }
 
-            // Set the cell style for the y-value cell
-//            CellStyle yValueStyle = workbook.createCellStyle();
-//            yValueStyle.setFillForegroundColor(IndexedColors.WHITE.getIndex());
-//            yValueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-//            yValue.setCellStyle(yValueStyle);
+
+
 
             for (SimpleXYSeries series : seriesList) {
                 int indexSeries = seriesList.indexOf(series);
@@ -396,15 +358,13 @@ public class SeriesTableActivity extends AppCompatActivity {
                         }
 
                         // Set the cell style for the x-value cell
-//                        CellStyle xValueStyle = workbook.createCellStyle();
-//                        Font font = workbook.createFont();
+
                         if (isInteger) {
-//                            font.setColor(IndexedColors.GREEN.getIndex());
+                           
                         } else {
-//                            font.setColor(IndexedColors.BLUE.getIndex());
+
                         }
-//                        xValueStyle.setFont(font);
-//                        xValue.setCellStyle(xValueStyle);
+
                     } else {
                         xValue.setCellValue(series.getX(i).doubleValue());
                     }
@@ -420,7 +380,7 @@ public class SeriesTableActivity extends AppCompatActivity {
 
     private void openPath() {
         // write the document content
-        String fileName = "test.xls";
+        String fileName = nameZamer+".xls";
         ContentResolver contentResolver = getContentResolver();
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         String mimeType = mimeTypeMap.getMimeTypeFromExtension("xls");
@@ -439,12 +399,43 @@ public class SeriesTableActivity extends AppCompatActivity {
             if (uri != null) {
                 try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
                      FileOutputStream fos = new FileOutputStream(pfd.getFileDescriptor())) {
-                    // Write the document content to the file
+                    // Write the Excel document content to the file
                     workbook.write(fos);
                     workbook.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Handler handler = new Handler(Looper.getMainLooper());
+                }
+            }
+        } else if (requestCode == REQUEST_CODE_SAVE_PDF_DOCUMENT && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+                     FileOutputStream fos = new FileOutputStream(pfd.getFileDescriptor())) {
+                    // Write the PDF document content to the file
+                    document.writeTo(fos);
+                    document.close();
+                    targetPdf = uri;
+                    boolean_save = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    boolean_save = false;
+                    document.close();
+                }
+            }
+        } else if (requestCode == REQUEST_CODE_CREATE_PDF_DOCUMENT && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+                     FileOutputStream fos = new FileOutputStream(pfd.getFileDescriptor())) {
+                    // Write the PDF document content to the file
+                    document.writeTo(fos);
+                    document.close();
+                    targetPdf = uri;
+                    boolean_save = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    boolean_save = false;
+                    document.close();
                 }
             }
         }
@@ -456,6 +447,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -465,7 +457,65 @@ public class SeriesTableActivity extends AppCompatActivity {
             openPath();
             return true;
         }
+        if (id == R.id.action_pdf) {
+            createPdfAndSave();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
-    
+
+
+    private PdfDocument createPdf(){
+
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        float hight = seriesTable.getHeight();
+        float width = seriesTable.getWidth();
+        int convertHighet = (int) hight, convertWidth = (int) width;
+        PdfDocument document = new PdfDocument();
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(seriesTable.getWidth(), seriesTable.getHeight(), 1).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+        Paint paint = new Paint();
+        canvas.drawPaint(paint);
+        bitmap = Bitmap.createScaledBitmap(bitmap, seriesTable.getWidth(), seriesTable.getHeight(), true);
+        paint.setColor(Color.WHITE);
+        canvas.drawARGB(255, 255, 255, 255);
+        canvas.drawBitmap(bitmap, 50, 50, paint);
+        document.finishPage(page);
+        int height;
+        System.out.println("Документ"+document.getPages().toString());
+        return document;
+    }
+
+
+
+    private void createPdfAndSave() {
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        float hight = displaymetrics.heightPixels;
+        float width = displaymetrics.widthPixels;
+        bitmap = loadBitmapFromView(seriesTable, seriesTable.getWidth(), seriesTable.getHeight());
+        document = createPdf();
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, nameZamer + ".pdf");
+        startActivityForResult(intent, REQUEST_CODE_CREATE_PDF_DOCUMENT);
+    }
+
+
+
+
+
+
+
+    public static Bitmap loadBitmapFromView(View v, int width, int height) {
+        Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
+        Canvas c = new Canvas(b);
+        v.draw(c);
+        return b;
+    }
+
 }
