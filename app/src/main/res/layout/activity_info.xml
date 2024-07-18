@@ -34,6 +34,24 @@
             \n Консультанты бригадиры Эльгинской дистанции пути ПЧ-51:\n Дондуков Вячеслав Прокопьевич,
             \n Кочетков Владимир Александрович"
             android:textSize="16dp" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnTelega"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Телеграмм канал" />
+
+        <Button
+            android:id="@+id/btnUpdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Обновления" />
+
+
     </LinearLayout>
 
 

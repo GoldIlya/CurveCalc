@@ -7,4 +7,9 @@
         android:title="Excel"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_pdf"
+        android:title="PDF"
+        app:showAsAction="never" />
+
 </menu>
