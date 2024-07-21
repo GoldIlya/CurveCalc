@@ -1,5 +1,8 @@
 package ru.itinbiz.curvecalc;
 
+import static android.text.InputType.TYPE_CLASS_NUMBER;
+import static android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL;
+import static android.text.InputType.TYPE_NUMBER_FLAG_SIGNED;
 import static android.view.KeyEvent.KEYCODE_ENTER;
 
 import android.annotation.SuppressLint;
@@ -12,6 +15,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -23,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +52,9 @@ import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import ru.itinbiz.curvecalc.adapter.PointAdapter;
@@ -62,6 +69,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     int measurementIdDb;
     boolean isNew = false;
     boolean isModeOnePoint = true;
+    boolean isModeEnter;
     boolean isClick = false;
     private XYPlot plot;
     private SimpleXYSeries series, curSeries, curSeriesInt, curSeriesDouble,  highlightedPoint;
@@ -71,7 +79,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             seriesFormatPromerInt, seriesFormatPromerDouble,
             pointFormat, pointFormatInt, pointFormatDouble;
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
-    private int curElement;
+    private Map<String, Integer> curElements = new HashMap<>();
+    private int curElement = -1;
     private int count = 0;
     private double countPoint = 1;
     private int countSeries = 0;
@@ -99,7 +108,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zamer);
-
 
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(this);
@@ -175,6 +183,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
             series = new SimpleXYSeries("Замер");
             seriesList.add(series); // Add the initial series to the list
+
         }
 
         countTextView = findViewById(R.id.count_text_view);
@@ -387,6 +396,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if(measurementUnitDB.equals("Точки и полуточки 2")){
                     pointAndDoublePoint();
                 }
+
+                if(isModeEnter){
+                    etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                }else{
+                    etEnterVal.setInputType(TYPE_CLASS_NUMBER);
+                }
             }
         });
 
@@ -463,7 +478,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 // Show the numeric keyboard explicitly
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
-                etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                if(isModeEnter){
+                    etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                }else{
+                    etEnterVal.setInputType(TYPE_CLASS_NUMBER);
+                }
                 return consumed;
 
             }
@@ -529,7 +548,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 // Show the numeric keyboard explicitly
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(valueSet, InputMethodManager.SHOW_IMPLICIT);
-                valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                if(isModeEnter){
+                    valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                }else{
+                    valueSet.setInputType(TYPE_CLASS_NUMBER);
+                }
                 return consumed;
 
             }
@@ -729,7 +752,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     AlertDialog ad = builder.create();
                     ad.show();
                 }
-
+                curElement = -1;
             }
         });
 
@@ -758,7 +781,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 resetCount();
                 plot.redraw();
 //                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
+                curElement = -1;
             }
+
         });
 
         nextButton.setOnClickListener(new View.OnClickListener() {
@@ -784,6 +809,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 resetCount();
                 plot.redraw();
 //                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
+                curElement = -1;
             }
         });
 
@@ -895,7 +921,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
                         // Get the EditText and RadioGroup from the custom layout
                         RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
-
+                        Switch swEnterMinusVal = view.findViewById(R.id.enterMinusVal);
+                        if(!isModeEnter){
+                            swEnterMinusVal.setChecked(false);
+                        }else{
+                            swEnterMinusVal.setChecked(true);
+                        }
                         // Set the default selection for the RadioGroup
                         if(isModeOnePoint){
                             radioGroup.check(R.id.radioBtnOnePoint);
@@ -920,6 +951,18 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                         }else{
                                             isModeOnePoint = true;
                                         }
+                                        if(swEnterMinusVal.isChecked()){
+                                            isModeEnter = true;
+                                            etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                                            valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+                                        }else{
+                                            isModeEnter = false;
+                                            etEnterVal.setInputType(TYPE_CLASS_NUMBER);
+                                            valueSet.setInputType(TYPE_CLASS_NUMBER);
+                                        }
+
+
                                     }
                                 })
                                 .setNegativeButton("Cancel", null)
@@ -933,48 +976,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         });
 
-//        btnShiftMode.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                // Inflate the custom layout
-//                View view = LayoutInflater.from(ZamerActivity.this).inflate(R.layout.dialog_input_mode, null);
 //
-//                // Get the EditText and RadioGroup from the custom layout
-//                RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
-//
-//                // Set the default selection for the RadioGroup
-//                if(isModeOnePoint){
-//                    radioGroup.check(R.id.radioBtnOnePoint);
-//                }else{
-//                    radioGroup.check(R.id.radioBtnAllPoint);
-//                }
-//
-//                // Create the AlertDialog with the custom layout
-//                AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
-//                        .setTitle("Выбрать режим")
-//                        .setView(view)
-//                        .setCancelable(false)
-//                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                int selectedId = radioGroup.getCheckedRadioButtonId();
-//                                RadioButton selectedRadioButton = view.findViewById(selectedId);
-//                                String shiftMode = selectedRadioButton.getText().toString();
-//                                Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
-//                                if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
-//                                    isModeOnePoint = false;
-//                                }else{
-//                                    isModeOnePoint = true;
-//                                }
-//                            }
-//                        })
-//                        .setNegativeButton("Cancel", null)
-//                        .create();
-//
-//                dialogWithInput.show();
-//            }
-//        });
-
     }
 
     private long saveDataToDatabase() {
@@ -1284,7 +1286,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         }else{
-            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
+            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, curElement);
             recyclerView.setAdapter(pointAdapterForDiff);
 //            btnShiftMode.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
@@ -1465,131 +1467,143 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
     private void plusPoint(){
-        int currentIndex = seriesList.indexOf(curSeries);
-        count++;
-        Number curX = Float.parseFloat(curSeries.getX(curElement).toString())+1;
-        if(measurementUnitDB.equals("Точки")){
-            if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
-                curSeries.setX(curX1, curElement+1);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
-                curSeries.setX(curX2, curElement-1);
-            }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
-                curSeries.setX(curX1, curElement+1);
-            }
-                if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
+        if(curElement == -1){
+            Toast.makeText(this, "Выберите значение для сдвига", Toast.LENGTH_SHORT).show();
+        }else{
+            int currentIndex = seriesList.indexOf(curSeries);
+            count++;
+            Number curX = Float.parseFloat(curSeries.getX(curElement).toString())+1;
+            if(measurementUnitDB.equals("Точки")){
+                if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
+                    curSeries.setX(curX1, curElement+1);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
                     curSeries.setX(curX2, curElement-1);
+                }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
+                    curSeries.setX(curX1, curElement+1);
                 }
-            }
-            curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("Точки и полуточки 1")){
-            if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                curSeries.setX(curX1, curElement+2);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                curSeries.setX(curX2, curElement-2);
-            }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                curSeries.setX(curX1, curElement+2);
-            }
-                if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                    if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
+                        curSeries.setX(curX2, curElement-1);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+            }if(measurementUnitDB.equals("Точки и полуточки 1")){
+                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
+                    curSeries.setX(curX1, curElement+2);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
                     curSeries.setX(curX2, curElement-2);
+                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
+                    curSeries.setX(curX1, curElement+2);
                 }
-            }
-            curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("Точки и полуточки 2")){
-            if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                curSeries.setX(curX1, curElement+2);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                curSeries.setX(curX2, curElement-2);
-            }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                curSeries.setX(curX1, curElement+2);
-            }
-                if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
+                        curSeries.setX(curX2, curElement-2);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+            }if(measurementUnitDB.equals("Точки и полуточки 2")){
+                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
+                    curSeries.setX(curX1, curElement+2);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
                     curSeries.setX(curX2, curElement-2);
+                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
+                    curSeries.setX(curX1, curElement+2);
                 }
+                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
+                        curSeries.setX(curX2, curElement-2);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+                pointAndDoublePoint();
             }
-            curSeries.setX(curX, curElement);
-            pointAndDoublePoint();
+
+            highlightedPoint.setX(curX, 0);
+            List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
+            subList.clear();
+            updateCountText();
+            calculateDifference();
+            countSeries = currentIndex;
+            recyclerView.scrollToPosition(curElement);
         }
 
-        highlightedPoint.setX(curX, 0);
-        List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
-        subList.clear();
-        updateCountText();
-        calculateDifference();
-        countSeries = currentIndex;
-        recyclerView.scrollToPosition(curElement);
     }
 
     private void minusPoint(){
-        int currentIndex = seriesList.indexOf(curSeries);
-        count--;
-        Number curX = Float.parseFloat(curSeries.getX(curElement).toString())-1;
-        if(measurementUnitDB.equals("Точки")){
-            if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
-                curSeries.setX(curX1, curElement+1);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())+0.5;
-                curSeries.setX(curX2, curElement-1);
-            }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
-                curSeries.setX(curX1, curElement+1);
-            }
-                if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
+        if(curElement == -1){
+            Toast.makeText(this, "Выберите значение для сдвига", Toast.LENGTH_SHORT).show();
+        }else{
+            int currentIndex = seriesList.indexOf(curSeries);
+            count--;
+            Number curX = Float.parseFloat(curSeries.getX(curElement).toString())-1;
+            if(measurementUnitDB.equals("Точки")){
+                if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
+                    curSeries.setX(curX1, curElement+1);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())+0.5;
                     curSeries.setX(curX2, curElement-1);
+                }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
+                    curSeries.setX(curX1, curElement+1);
                 }
-            }
-            curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("Точки и полуточки 1")){
-            if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                curSeries.setX(curX1, curElement+2);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                curSeries.setX(curX2, curElement-2);
-            }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                curSeries.setX(curX1, curElement+2);
-            }
-                if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                    if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())+0.5;
+                        curSeries.setX(curX2, curElement-1);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+            }if(measurementUnitDB.equals("Точки и полуточки 1")){
+                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
+                    curSeries.setX(curX1, curElement+2);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
                     curSeries.setX(curX2, curElement-2);
+                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
+                    curSeries.setX(curX1, curElement+2);
                 }
-            }
-            curSeries.setX(curX, curElement);
-        }if(measurementUnitDB.equals("Точки и полуточки 2")){
-            if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                curSeries.setX(curX1, curElement+2);
-                Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                curSeries.setX(curX2, curElement-2);
-            }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                curSeries.setX(curX1, curElement+2);
-            }
-                if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
+                        curSeries.setX(curX2, curElement-2);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+            }if(measurementUnitDB.equals("Точки и полуточки 2")){
+                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
+                    curSeries.setX(curX1, curElement+2);
                     Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
                     curSeries.setX(curX2, curElement-2);
+                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
+                    curSeries.setX(curX1, curElement+2);
                 }
+                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
+                        curSeries.setX(curX2, curElement-2);
+                    }
+                }
+                curSeries.setX(curX, curElement);
+                pointAndDoublePoint();
             }
-            curSeries.setX(curX, curElement);
-            pointAndDoublePoint();
+            highlightedPoint.setX(curX, 0);
+            List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
+            subList.clear();
+            updateCountText();
+            calculateDifference();
+            countSeries = currentIndex;
+            recyclerView.scrollToPosition(curElement);
         }
-        highlightedPoint.setX(curX, 0);
-        List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
-        subList.clear();
-        updateCountText();
-        calculateDifference();
-        countSeries = currentIndex;
-        recyclerView.scrollToPosition(curElement);
     }
+
+
+
 
 
     private void resetChangesList(){

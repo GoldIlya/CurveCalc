@@ -27,11 +27,12 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
     }
 
 
-    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener) {
+    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener, int currentIndex) {
         this.mCtx = mCtx;
         this.dataSet = dataSet;
         this.diffSet = diffSet;
         this.onItemClickListener = onItemClickListener;
+        this.selectedIndex = currentIndex;
     }
 
     @Override
@@ -112,10 +113,16 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
         }
 
         // Highlight the selected item
+//        if (position == selectedIndex) {
+//            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
+//        } else {
+//            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
+//        }
+
         if (position == selectedIndex) {
-            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
-        } else {
-            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.red));
+            holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.red));
+            holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.red));
         }
 
     }

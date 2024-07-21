@@ -30,6 +30,14 @@
             android:layout_height="wrap_content"
             android:text="режим включает возможность  сдвига только одной точки в шаге" />
 
+        <Switch
+            android:id="@+id/enterMinusVal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:text="Включить ввод отрицательных значений" />
+
+
     </RadioGroup>
 
 </LinearLayout>

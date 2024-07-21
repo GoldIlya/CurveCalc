@@ -105,7 +105,7 @@
                             android:layout_marginTop="6dp"
                             android:layout_marginBottom="8dp"
                             android:hint="Измерение"
-                            android:inputType="numberDecimal"
+                            android:inputType="number"
                             android:singleLine="true" />
 
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -226,7 +226,7 @@
                             android:layout_marginBottom="8dp"
                             android:layout_weight="1"
                             android:hint="365.0"
-                            android:inputType="numberDecimal"
+                            android:inputType="number"
                             android:singleLine="true" />
 
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
