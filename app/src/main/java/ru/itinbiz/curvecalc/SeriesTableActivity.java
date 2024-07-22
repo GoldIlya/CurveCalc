@@ -57,7 +57,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SeriesTableActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS = 1;
@@ -69,6 +71,7 @@ public class SeriesTableActivity extends AppCompatActivity {
 
 
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
+    private Map<Integer, Integer> curElements = new HashMap<>();
     private String nameZamer;
     private TableLayout seriesTable;
     private float scaleFactor = 1.0f;
@@ -96,9 +99,12 @@ public class SeriesTableActivity extends AppCompatActivity {
         // Get the seriesList data from the Intent
         Intent intent = getIntent();
         String seriesListJson = intent.getStringExtra("seriesListJson");
+        String curElementsToJson = intent.getStringExtra("curElementsToJson");
         Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
         seriesList = gson.fromJson(seriesListJson, seriesListType);
+        Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+        curElements = gson.fromJson(curElementsToJson, curElementsType);
         nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
 //        btnExcel = findViewById(R.id.btnExcel);
         fn_permission();
@@ -254,9 +260,27 @@ public class SeriesTableActivity extends AppCompatActivity {
                             xValue.setText(String.valueOf(series.getX(i)) + "  " + iDiff);
                         }
                         if(isInteger){
-                            xValue.setTextColor(this.getResources().getColor(R.color.green));
+                            if(curElements != null){
+                                Integer value = curElements.get(indexSeries);
+                                if(value != null && value.intValue() == i){
+                                    xValue.setTextColor(this.getResources().getColor(R.color.red));
+                                }else{
+                                    xValue.setTextColor(this.getResources().getColor(R.color.green));
+                                }
+                            }else{
+                                // handle the case where curElements is null
+                            }
                         }else{
-                            xValue.setTextColor(this.getResources().getColor(R.color.blue));
+                            if(curElements != null){
+                                Integer value = curElements.get(indexSeries);
+                                if(value != null && value.intValue() == i){
+                                    xValue.setTextColor(this.getResources().getColor(R.color.red));
+                                }else{
+                                    xValue.setTextColor(this.getResources().getColor(R.color.blue));
+                                }
+                            }else{
+                                // handle the case where curElements is null
+                            }
                         }
 
                     } else {

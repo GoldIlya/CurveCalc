@@ -9,8 +9,8 @@ import androidx.room.RoomDatabase;
 
 import ru.itinbiz.curvecalc.model.Measurement;
 
-@Database(entities = {Measurement.class}, version = 4, autoMigrations = {
-        @AutoMigration (from = 3, to = 4)} ,  exportSchema = true)
+@Database(entities = {Measurement.class}, version = 5, autoMigrations = {
+        @AutoMigration (from = 4, to = 5)} ,  exportSchema = true)
 
 
 public abstract class AppDatabase extends RoomDatabase {

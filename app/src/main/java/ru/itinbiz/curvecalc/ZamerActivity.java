@@ -158,6 +158,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             Gson gson = new Gson();
             Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
             seriesList = gson.fromJson(measurementDB.getSeriesListJson(), seriesListType);
+            Type type = new TypeToken<Map<Integer, Integer>>() {}.getType();
+            curElements = gson.fromJson(measurementDB.getCurElementsJson(), type);
+            if(curElements == null){
+                curElements = new HashMap<>();
+            }
             if(seriesList.size()>0){
                 countPoint = measurementDB.getCountPoint();
                 countSeries = measurementDB.getCountSeries();
@@ -183,7 +188,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
             series = new SimpleXYSeries("Замер");
             seriesList.add(series); // Add the initial series to the list
-
+            if(curElements == null){
+                curElements = new HashMap<>();
+            }
         }
 
         countTextView = findViewById(R.id.count_text_view);
@@ -816,6 +823,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 //                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
                 if(curElements.get(selectedSeriesIndex) == null){
                     Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
+                    curElements.put(selectedSeriesIndex, curElement);
                     curElement = -1;
                 }else{
                     Toast.makeText(ZamerActivity.this, curElements.get(selectedSeriesIndex).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
@@ -919,8 +927,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
                         Gson gson = new Gson();
                         String seriesListJson = gson.toJson(seriesList);
+                        String curElementsToJson = gson.toJson(curElements);
                         String nameZamer = zamerNameDB.toString();
-                        intent.putExtra("seriesListJson", seriesListJson).putExtra("nameZamer", nameZamer);
+                        intent.putExtra("seriesListJson", seriesListJson).putExtra("nameZamer", nameZamer).putExtra("curElementsToJson", curElementsToJson);
                         startActivity(intent);
                     }
                 });
@@ -996,6 +1005,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             protected Long doInBackground(Void... voids) {
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
+                String curElementsJson = gson.toJson(curElements);
 
                 Measurement measurement = new Measurement();
                 measurement.setName(zamerNameDB);
@@ -1003,12 +1013,14 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 measurement.setCountSeries(countSeries);
                 measurement.setMeasurementUnit(measurementUnitDB);
                 measurement.setSeriesListJson(seriesListJson);
+                measurement.setCurElementsJson(curElementsJson);
+
                 long insertedId = AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
                         .insertAndReturnId(measurement);
-
                 return insertedId;
             }
+
 
             @Override
             protected void onPostExecute(Long insertedId) {
@@ -1045,16 +1057,18 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         return -1;
     }
     private void updateMeasurement(final Measurement measurementDB) {
-
         class UpdateMeasurement extends AsyncTask<Void, Void, Void> {
             @Override
             protected Void doInBackground(Void... voids) {
-
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
+                String curElementsJson = gson.toJson(curElements);
+
                 measurementDB.setCountPoint(countPoint);
                 measurementDB.setCountSeries(countSeries);
                 measurementDB.setSeriesListJson(seriesListJson);
+                measurementDB.setCurElementsJson(curElementsJson);
+
                 AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
                         .updateMeasurement(measurementDB);

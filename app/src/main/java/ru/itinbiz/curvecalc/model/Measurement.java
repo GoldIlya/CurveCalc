@@ -14,6 +14,7 @@ public class Measurement {
     private int countSeries;
     private String seriesListJson; // Save the seriesList as a JSON string
     private String baseMeasurJson;
+    private String curElementsJson; // Save the curElements as a JSON string
 
     // Getters and setters
 
@@ -60,4 +61,8 @@ public class Measurement {
     public String getBaseMeasurJson() {return baseMeasurJson;}
 
     public void setBaseMeasurJson(String baseMeasurJson) {this.baseMeasurJson = baseMeasurJson;}
+
+    public String getCurElementsJson() {return curElementsJson;}
+
+    public void setCurElementsJson(String curElementsJson) {this.curElementsJson = curElementsJson;}
 }
