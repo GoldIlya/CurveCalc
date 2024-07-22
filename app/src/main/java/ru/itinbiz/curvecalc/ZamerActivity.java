@@ -79,7 +79,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             seriesFormatPromerInt, seriesFormatPromerDouble,
             pointFormat, pointFormatInt, pointFormatDouble;
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
-    private Map<String, Integer> curElements = new HashMap<>();
+    private Map<Integer, Integer> curElements = new HashMap<>();
     private int curElement = -1;
     private int count = 0;
     private double countPoint = 1;
@@ -780,8 +780,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
                 resetCount();
                 plot.redraw();
-//                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
-                curElement = -1;
+                if(curElements.get(selectedSeriesIndex) == null){
+                    Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
+                    curElement = -1;
+                }else{
+                    Toast.makeText(ZamerActivity.this, curElements.get(selectedSeriesIndex).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
+                    curElement = curElements.get(selectedSeriesIndex).intValue();
+                }
             }
 
         });
@@ -809,7 +814,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 resetCount();
                 plot.redraw();
 //                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
-                curElement = -1;
+                if(curElements.get(selectedSeriesIndex) == null){
+                    Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
+                    curElement = -1;
+                }else{
+                    Toast.makeText(ZamerActivity.this, curElements.get(selectedSeriesIndex).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
+                    curElement = curElements.get(selectedSeriesIndex).intValue();
+                }
             }
         });
 
@@ -1103,6 +1114,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             plot.addSeries(highlightedPoint, pointFormat);
             plot.redraw();
             curElement = index;
+            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
             resetCount();
         }else{
             blockSdvig.setVisibility(View.VISIBLE);
@@ -1127,6 +1139,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             plot.addSeries(highlightedPoint, pointFormat);
             plot.redraw();
             curElement = index;
+            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
             resetCount();
         }
 

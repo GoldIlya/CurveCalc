@@ -491,7 +491,6 @@ public class SeriesTableActivity extends AppCompatActivity {
     }
 
 
-
     private void createPdfAndSave() {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
@@ -504,12 +503,6 @@ public class SeriesTableActivity extends AppCompatActivity {
         intent.putExtra(Intent.EXTRA_TITLE, nameZamer + ".pdf");
         startActivityForResult(intent, REQUEST_CODE_CREATE_PDF_DOCUMENT);
     }
-
-
-
-
-
-
 
     public static Bitmap loadBitmapFromView(View v, int width, int height) {
         Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
