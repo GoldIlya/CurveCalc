@@ -1153,7 +1153,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             plot.addSeries(highlightedPoint, pointFormat);
             plot.redraw();
             curElement = index;
-            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
             resetCount();
         }
 
@@ -1417,6 +1416,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private void onSeriesSpinnerItemSelected(int position) {
         selectedSeriesIndex = position;
         curSeries = seriesList.get(selectedSeriesIndex);
+        if(curElements.get(position) == null){
+            Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
+            curElement = -1;
+        }else{
+            Toast.makeText(ZamerActivity.this, curElements.get(position).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
+            curElement = curElements.get(position).intValue();
+        }
         createListPoint();
         plot.clear();
         if (measurementUnitDB.equals("Точки и полуточки 2")) {
@@ -1549,6 +1555,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 }
                 curSeries.setX(curX, curElement);
                 pointAndDoublePoint();
+
             }
 
             highlightedPoint.setX(curX, 0);
@@ -1559,7 +1566,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             countSeries = currentIndex;
             recyclerView.scrollToPosition(curElement);
         }
-
+        curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
     }
 
     private void minusPoint(){
@@ -1627,6 +1634,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             countSeries = currentIndex;
             recyclerView.scrollToPosition(curElement);
         }
+        curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
     }
 
 
