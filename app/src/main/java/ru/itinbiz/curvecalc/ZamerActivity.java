@@ -759,8 +759,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     AlertDialog ad = builder.create();
                     ad.show();
                 }
+                hideKeyboard();
                 curElement = -1;
             }
+
         });
 
 
@@ -786,6 +788,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     }
                 }
                 resetCount();
+                hideKeyboard();
                 plot.redraw();
                 if(curElements.get(selectedSeriesIndex) == null){
                     curElement = -1;
@@ -817,8 +820,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     }
                 }
                 resetCount();
+                hideKeyboard();
                 plot.redraw();
-//                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
+//
                 if(curElements.get(selectedSeriesIndex) == null){
                     curElement = -1;
                 }else{
@@ -1345,6 +1349,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             count = 0;
             countTextView.setText(String.valueOf(count));
         }
+
     }
 
     private void resetCountBtn(){
@@ -1406,10 +1411,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         selectedSeriesIndex = position;
         curSeries = seriesList.get(selectedSeriesIndex);
         if(curElements.get(position) == null){
-            Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
             curElement = -1;
         }else{
-            Toast.makeText(ZamerActivity.this, curElements.get(position).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
             curElement = curElements.get(position).intValue();
         }
         createListPoint();
@@ -1424,6 +1427,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         }
         resetCount();
+        hideKeyboard();
         plot.redraw();
     }
 
@@ -1635,6 +1639,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
 
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(etEnterVal.getWindowToken(), 0);
+    }
 
 
 
