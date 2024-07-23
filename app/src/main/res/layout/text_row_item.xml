@@ -15,19 +15,25 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minWidth="30dp"
+                    android:maxWidth="30dp"
                     android:text="999"
+                    android:maxHeight="28dp"
                     android:textSize="15dp"
+                    android:autoSizeTextType="uniform"
                     android:padding="2dp"
                     android:background="@drawable/border"
-                    />
+                />
 
                 <TextView
                     android:id="@+id/tvZnach"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minWidth="50dp"
+                    android:maxWidth="50dp"
                     android:text="999.9"
+                    android:maxHeight="28dp"
                     android:textSize="16dp"
+                    android:autoSizeTextType="uniform"
                     android:padding="2dp"
                     android:background="@drawable/border"/>
 
@@ -36,8 +42,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minWidth="40dp"
+                    android:maxWidth="40dp"
                     android:text=""
+                    android:maxHeight="28dp"
                     android:textSize="16dp"
+                    android:autoSizeTextType="uniform"
                     android:padding="2dp"
                     android:background="@drawable/border"/>
         </LinearLayout>
