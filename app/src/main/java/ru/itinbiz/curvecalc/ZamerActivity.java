@@ -788,10 +788,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 resetCount();
                 plot.redraw();
                 if(curElements.get(selectedSeriesIndex) == null){
-                    Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
                     curElement = -1;
                 }else{
-                    Toast.makeText(ZamerActivity.this, curElements.get(selectedSeriesIndex).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
                     curElement = curElements.get(selectedSeriesIndex).intValue();
                 }
             }
@@ -822,11 +820,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 plot.redraw();
 //                Toast.makeText(ZamerActivity.this, "Счётчик"+countSeries, Toast.LENGTH_SHORT).show();
                 if(curElements.get(selectedSeriesIndex) == null){
-                    Toast.makeText(ZamerActivity.this, "Пусто", Toast.LENGTH_SHORT).show();
-                    curElements.put(selectedSeriesIndex, curElement);
                     curElement = -1;
                 }else{
-                    Toast.makeText(ZamerActivity.this, curElements.get(selectedSeriesIndex).intValue()+" не пусто", Toast.LENGTH_SHORT).show();
                     curElement = curElements.get(selectedSeriesIndex).intValue();
                 }
             }
@@ -913,12 +908,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         btnTable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(ZamerActivity.this, SeriesTableActivity.class);
-//                Gson gson = new Gson();
-//                String seriesListJson = gson.toJson(seriesList);
-//                intent.putExtra("seriesListJson", seriesListJson);
-//                startActivity(intent);
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
                 builder.setTitle("Выберите действие");
                 builder.setPositiveButton("Открыть таблицу", new DialogInterface.OnClickListener() {
@@ -1566,7 +1555,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             countSeries = currentIndex;
             recyclerView.scrollToPosition(curElement);
         }
-        curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+        if(count == 0){
+            curElements.put(selectedSeriesIndex, -1);
+        }else{
+            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+        }
     }
 
     private void minusPoint(){
@@ -1634,7 +1627,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             countSeries = currentIndex;
             recyclerView.scrollToPosition(curElement);
         }
-        curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+        if(count == 0){
+            curElements.put(selectedSeriesIndex, -1);
+        }else{
+            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+        }
     }
 
 
