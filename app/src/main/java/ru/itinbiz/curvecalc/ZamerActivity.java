@@ -1,8 +1,6 @@
 package ru.itinbiz.curvecalc;
 
 import static android.text.InputType.TYPE_CLASS_NUMBER;
-import static android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL;
-import static android.text.InputType.TYPE_NUMBER_FLAG_SIGNED;
 import static android.view.KeyEvent.KEYCODE_ENTER;
 
 import android.annotation.SuppressLint;
@@ -12,11 +10,12 @@ import android.content.Intent;
 import android.graphics.DashPathEffect;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -62,6 +61,7 @@ import ru.itinbiz.curvecalc.adapter.PointAdapterForDiff;
 import ru.itinbiz.curvecalc.data.AppDatabase;
 import ru.itinbiz.curvecalc.data.MeasurementDao;
 import ru.itinbiz.curvecalc.model.Measurement;
+import ru.itinbiz.curvecalc.model.PointShift;
 import ru.itinbiz.curvecalc.service.MyLineAndPointFormatter;
 
 public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnItemClickListener, PointAdapterForDiff.OnItemClickListener {
@@ -100,6 +100,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private Measurement measurementDB;
 
     private String measurementUnitDB;
+    private Handler handler = new Handler();
+    private Handler handler1 = new Handler();
+
+    private Map<Integer, Integer> pointShiftMap = new HashMap<>();
 
 
 
@@ -323,7 +327,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         // Set the plot's properties
         plot.setRangeLabel("Y");
         plot.setDomainLabel("X");
-
+        setScalePlot();
         plot.setDomainStep(StepMode.INCREMENT_BY_PIXELS,30);
         plot.setRangeStep(StepMode.INCREMENT_BY_PIXELS,50);
         PanZoom.attach(plot, PanZoom.Pan.BOTH, PanZoom.Zoom.SCALE);
@@ -403,7 +407,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if(measurementUnitDB.equals("Точки и полуточки 2")){
                     pointAndDoublePoint();
                 }
-
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (!imm.isActive(etEnterVal)) {
+                    imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
+                }
                 if(isModeEnter){
                     etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 }else{
@@ -480,20 +487,20 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
                     consumed = true;
                 }
-                etEnterVal.requestFocus();
-
                 // Show the numeric keyboard explicitly
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
+                if (!imm.isActive(etEnterVal)) {
+                    imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
+                }
                 if(isModeEnter){
                     etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 }else{
                     etEnterVal.setInputType(TYPE_CLASS_NUMBER);
                 }
                 return consumed;
-
             }
         });
+
 
 
         appEdit.setOnClickListener(new View.OnClickListener() {
@@ -568,201 +575,80 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         btnPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int currentIndex = seriesList.indexOf(curSeries);
-                if((currentIndex+1)>= seriesList.size()){
-                    if(isModeOnePoint){
-                        if(isClick){
-                            resetChangesList();
-                            plusPoint();
-                            isClick = false;
-                        }else{
-                            plusPoint();
-                        }
-                    }else{
-                        plusPoint();
-                    }
-                } else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
-                    builder.setTitle("Данное действие удалит все шаги.");
-                    builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                    shiftAndReset(1);
+            }
+        });
 
-                            if(isModeOnePoint){
-                                if(isClick){
-                                    resetChangesList();
-                                    plusPoint();
-                                    isClick = false;
-                                }else{
-                                    plusPoint();
-                                }
-                            }else{
-                                plusPoint();
-                            }
-                            String[] newSeriesArray = getSeriesArray();
-                            ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
-                            newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            seriesSpinner.setAdapter(newSeriesAdapter);
-                            seriesSpinner.setSelection(currentIndex);
-                        }
-                    });
-                    builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                        }
-                    });
-                    AlertDialog ad = builder.create();
-                    ad.show();
+        btnPlus.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                handler.post(runnable); // start calling plusPoint() repeatedly
+                return true;
+            }
+        });
+
+        btnPlus.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    handler.removeCallbacks(runnable); // stop calling plusPoint() when button is released
                 }
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    int currentIndex = seriesList.indexOf(curSeries);
+                    if ((currentIndex + 1) >= seriesList.size()) {
+                    } else {
+                        showAlertDialog("Данное действие удалит все шаги.", -1);
+                    }
+                }
+                return false;
             }
         });
 
         btnMinus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                    shiftAndReset(-1);
 
-                int currentIndex = seriesList.indexOf(curSeries);
-                if((currentIndex+1)>= seriesList.size()){
-                 if(isModeOnePoint){
-                     if(isClick){
-                         resetChangesList();
-                         minusPoint();
-                         isClick = false;
-                     }else{
-                         minusPoint();
-                     }
-                 }else{
-                     minusPoint();
-                 }
-
-                } else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
-                    builder.setTitle("Данное действие удалит все шаги.");
-                    builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            if(isModeOnePoint){
-                                if(isClick){
-                                    resetChangesList();
-                                    minusPoint();
-                                    isClick = false;
-                                }else{
-                                    minusPoint();
-                                }
-                            }else{
-                                minusPoint();
-                            }
-
-                            String[] newSeriesArray = getSeriesArray();
-                            ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
-                            newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            seriesSpinner.setAdapter(newSeriesAdapter);
-                            seriesSpinner.setSelection(currentIndex);
-                        }
-                    });
-                    builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                        }
-                    });
-                    AlertDialog ad = builder.create();
-                    ad.show();
-                }
             }
         });
 
 
+        btnMinus.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                handler.post(runnable1); // start calling plusPoint() repeatedly
+                return true;
+            }
+        });
+
+        btnMinus.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    handler1.removeCallbacks(runnable1); // stop calling plusPoint() when button is released
+                }
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    int currentIndex = seriesList.indexOf(curSeries);
+                    if ((currentIndex + 1) >= seriesList.size()) {
+                    } else {
+                        showAlertDialog("Данное действие удалит все шаги.", -1);
+                    }
+                }
+                return false;
+            }
+        });
+
         createNewSeriesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
-                int currentIndex = seriesList.indexOf(curSeries);
-                if((currentIndex+1)>= seriesList.size()){
-                    selectedSeriesIndex++;
-                    if (seriesList.size() > 0) {
-                        createNewSeries(curSeries);
-//                    Toast.makeText(ZamerActivity.this, ""+getSeriesArray().length, Toast.LENGTH_SHORT).show();
-                        curSeries = seriesList.get(selectedSeriesIndex);
-                        String[] newSeriesArray = getSeriesArray();
-                        ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
-                        newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        seriesSpinner.setAdapter(newSeriesAdapter);
-                        seriesSpinner.setSelection(seriesList.size()-1);
-                        plot.clear();
-                        if(measurementUnitDB.equals("Точки и полуточки 2")){
-                            pointAndDoublePoint();
-                        }else{
-                            if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
-                                plot.addSeries(curSeries, seriesFormat);
-                            }else{
-                                plot.addSeries(curSeries, seriesFormatPromer);
-                            }
-                        }
-                        plot.redraw();
-                    }
-                    createListPoint();
-                    resetChangesList();
-                    resetCountBtn();
-                    if(isNew){
-                        saveDataToDatabase();
-                    }else{
-//                    Toast.makeText(ZamerActivity.this, "Id объекта"+ measurementDB.getId(), Toast.LENGTH_SHORT).show();
-                        updateMeasurement(measurementDB);
-                    }
-                    isNew = false;
-                } else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
-                    builder.setTitle("Данное действие удалит все последующие шаги.");
-                    builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            selectedSeriesIndex++;
-                            if (seriesList.size() > 0) {
-                                createNewSeries(curSeries);
-//                    Toast.makeText(ZamerActivity.this, ""+getSeriesArray().length, Toast.LENGTH_SHORT).show();
-                                curSeries = seriesList.get(selectedSeriesIndex);
-                                String[] newSeriesArray = getSeriesArray();
-                                ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
-                                newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                seriesSpinner.setAdapter(newSeriesAdapter);
-                                seriesSpinner.setSelection(seriesList.size()-1);
-                                plot.clear();
-                                if(measurementUnitDB.equals("Точки и полуточки 2")){
-                                    pointAndDoublePoint();
-                                }else{
-                                    if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
-                                        plot.addSeries(curSeries, seriesFormat);
-                                    }else{
-                                        plot.addSeries(curSeries, seriesFormatPromer);
-                                    }
-                                }
-                                plot.redraw();
-                            }
-                            createListPoint();
-                            resetChangesList();
-                            resetCountBtn();
-                            if(isNew){
-                                saveDataToDatabase();
-                            }else{
-//                    Toast.makeText(ZamerActivity.this, "Id объекта"+ measurementDB.getId(), Toast.LENGTH_SHORT).show();
-                                updateMeasurement(measurementDB);
-                            }
-                            isNew = false;
-                        }
-                    });
-                    builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                        }
-                    });
-                    AlertDialog ad = builder.create();
-                    ad.show();
+                if ((seriesList.indexOf(curSeries) + 1) >= seriesList.size()) {
+                    createNewSeriesAndRefresh();
+                } else {
+                    showConfirmDialog();
                 }
                 hideKeyboard();
                 curElement = -1;
             }
-
         });
 
 
@@ -1305,7 +1191,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         }else{
-            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, curElement);
+            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, curElement, isModeOnePoint, pointShiftMap);
             recyclerView.setAdapter(pointAdapterForDiff);
 //            btnShiftMode.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
@@ -1319,24 +1205,32 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
     private void setScalePlot(){
+        double minXValue = Double.POSITIVE_INFINITY;
         double maxXValue = Double.NEGATIVE_INFINITY;
-        for (int i = 0; i < curSeries.size(); i++) {
-            double x = Double.parseDouble(curSeries.getX(i).toString());
-            if (x > maxXValue) {
-                maxXValue = x;
+        Number maxValueY;
+        if(curSeries.size()==0){
+            minXValue = 0;
+            maxXValue = 0;
+            maxValueY = 0;
+        }else{
+            maxValueY = Float.parseFloat(curSeries.getY(curSeries.size()-1).toString()) * 1.2;
+            for (int i = 0; i < curSeries.size(); i++) {
+                double x = Double.parseDouble(curSeries.getX(i).toString());
+                if (x > maxXValue) {
+                    maxXValue = x;
+                }
+            }
+
+            for (int i = 0; i < curSeries.size(); i++) {
+                double x = Double.parseDouble(curSeries.getX(i).toString());
+                if (x < minXValue) {
+                    minXValue = x;
+                }
             }
         }
 
-        double minXValue = Double.POSITIVE_INFINITY;
-        for (int i = 0; i < curSeries.size(); i++) {
-            double x = Double.parseDouble(curSeries.getX(i).toString());
-            if (x < minXValue) {
-                minXValue = x;
-            }
-        }
 //        Toast.makeText(this, "max"+maxXValue+" min"+minXValue , Toast.LENGTH_SHORT).show();
         Number minValueY = 0;
-        Number maxValueY = Float.parseFloat(curSeries.getY(curSeries.size()-1).toString()) * 1.2;
         Number minValueX = minXValue;
         Number maxValueX = maxXValue;
         plot.setRangeBoundaries(minValueY, maxValueY, BoundaryMode.FIXED);
@@ -1398,6 +1292,45 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    private void shiftAndReset(int direction) {
+        if (isModeOnePoint) {
+            if (isClick) {
+                resetChangesList();
+                shiftPoint(direction);
+                isClick = false;
+            } else {
+                shiftPoint(direction);
+            }
+        } else {
+            shiftPoint(direction);
+        }
+    }
+
+
+    private void showAlertDialog(String title, final int direction) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
+        builder.setTitle(title);
+        builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                shiftAndReset(direction);
+                String[] newSeriesArray = getSeriesArray();
+                ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
+                newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                seriesSpinner.setAdapter(newSeriesAdapter);
+                seriesSpinner.setSelection(seriesList.indexOf(curSeries));
+            }
+        });
+        builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        });
+        AlertDialog ad = builder.create();
+        ad.show();
+    }
+
 
 
     public void onBackPressed() {
@@ -1492,132 +1425,144 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
     }
 
-    private void plusPoint(){
-        if(curElement == -1){
-            Toast.makeText(this, "Выберите значение для сдвига", Toast.LENGTH_SHORT).show();
-        }else{
-            int currentIndex = seriesList.indexOf(curSeries);
-            count++;
-            Number curX = Float.parseFloat(curSeries.getX(curElement).toString())+1;
-            if(measurementUnitDB.equals("Точки")){
-                if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
-                    curSeries.setX(curX1, curElement+1);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
-                    curSeries.setX(curX2, curElement-1);
-                }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())-0.5;
-                    curSeries.setX(curX1, curElement+1);
-                }
-                    if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())-0.5;
-                        curSeries.setX(curX2, curElement-1);
-                    }
-                }
-                curSeries.setX(curX, curElement);
-            }if(measurementUnitDB.equals("Точки и полуточки 1")){
-                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                    curSeries.setX(curX1, curElement+2);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                    curSeries.setX(curX2, curElement-2);
-                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                    curSeries.setX(curX1, curElement+2);
-                }
-                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                        curSeries.setX(curX2, curElement-2);
-                    }
-                }
-                curSeries.setX(curX, curElement);
-            }if(measurementUnitDB.equals("Точки и полуточки 2")){
-                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                    curSeries.setX(curX1, curElement+2);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                    curSeries.setX(curX2, curElement-2);
-                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())-0.5;
-                    curSeries.setX(curX1, curElement+2);
-                }
-                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())-0.5;
-                        curSeries.setX(curX2, curElement-2);
-                    }
-                }
-                curSeries.setX(curX, curElement);
-                pointAndDoublePoint();
-
-            }
-
-            highlightedPoint.setX(curX, 0);
-            List<SimpleXYSeries> subList = seriesList.subList(currentIndex + 1, seriesList.size());
-            subList.clear();
-            updateCountText();
-            calculateDifference();
-            countSeries = currentIndex;
-            recyclerView.scrollToPosition(curElement);
+    // отдельный метод для создания новой серии и обновления интерфейса
+    private void createNewSeriesAndRefresh() {
+        selectedSeriesIndex++;
+        createNewSeries(curSeries);
+        curSeries = seriesList.get(selectedSeriesIndex);
+        refreshSeriesSpinner();
+        plot.clear();
+        addSeriesToPlot();
+        plot.redraw();
+        createListPoint();
+        resetChangesList();
+        resetCountBtn();
+        if (isNew) {
+            saveDataToDatabase();
+        } else {
+            updateMeasurement(measurementDB);
         }
-        if(count == 0){
-            curElements.put(selectedSeriesIndex, -1);
-        }else{
-            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+        isNew = false;
+    }
+
+    // отдельный метод для показа диалога подтверждения
+    private void showConfirmDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ZamerActivity.this);
+        builder.setTitle("Данное действие удалит все последующие шаги. ");
+        builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                createNewSeriesAndRefresh();
+            }
+        });
+        builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        });
+        AlertDialog ad = builder.create();
+        ad.show();
+    }
+
+    // отдельный метод для обновления спиннера серий
+    private void refreshSeriesSpinner() {
+        String[] newSeriesArray = getSeriesArray();
+        ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(ZamerActivity.this, android.R.layout.simple_spinner_item, newSeriesArray);
+        newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        seriesSpinner.setAdapter(newSeriesAdapter);
+        seriesSpinner.setSelection(seriesList.size() - 1);
+    }
+
+    // отдельный метод для добавления серии к графику
+    private void addSeriesToPlot() {
+        if (measurementUnitDB.equals("Точки и полуточки 2")) {
+            pointAndDoublePoint();
+        } else {
+            if (seriesList.size() == 1 || seriesSpinner.getSelectedItemPosition() == 0) {
+                plot.addSeries(curSeries, seriesFormat);
+            } else {
+                plot.addSeries(curSeries, seriesFormatPromer);
+            }
         }
     }
 
-    private void minusPoint(){
-        if(curElement == -1){
+
+
+
+
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            shiftPoint(1);
+            handler.postDelayed(this, 50); // call plusPoint() every 50ms
+        }
+    };
+
+
+    private Runnable runnable1 = new Runnable() {
+        @Override
+        public void run() {
+            shiftPoint(-1);
+            handler1.postDelayed(this, 50); // call plusPoint() every 50ms
+        }
+    };
+
+
+    private void shiftPoint(int direction) {
+        if (curElement == -1) {
             Toast.makeText(this, "Выберите значение для сдвига", Toast.LENGTH_SHORT).show();
-        }else{
+        } else {
             int currentIndex = seriesList.indexOf(curSeries);
-            count--;
-            Number curX = Float.parseFloat(curSeries.getX(curElement).toString())-1;
-            if(measurementUnitDB.equals("Точки")){
-                if(curElement>=1 && (curSeries.size()-1)-curElement >= 1){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
-                    curSeries.setX(curX1, curElement+1);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())+0.5;
-                    curSeries.setX(curX2, curElement-1);
-                }else{if(curElement<1 && (curSeries.size()-1)-curElement >= 1){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+1).toString())+0.5;
-                    curSeries.setX(curX1, curElement+1);
-                }
-                    if(curElement>=1 && (curSeries.size()-1)-curElement < 1){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-1).toString())+0.5;
-                        curSeries.setX(curX2, curElement-1);
+            count += direction;
+            Number curX = Float.parseFloat(curSeries.getX(curElement).toString()) + direction;
+            if (measurementUnitDB.equals("Точки")) {
+                if (curElement >= 1 && (curSeries.size() - 1) - curElement >= 1) {
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement + 1).toString()) - direction * 0.5;
+                    curSeries.setX(curX1, curElement + 1);
+                    Number curX2 = Float.parseFloat(curSeries.getX(curElement - 1).toString()) - direction * 0.5;
+                    curSeries.setX(curX2, curElement - 1);
+                } else {
+                    if (curElement < 1 && (curSeries.size() - 1) - curElement >= 1) {
+                        Number curX1 = Float.parseFloat(curSeries.getX(curElement + 1).toString()) - direction * 0.5;
+                        curSeries.setX(curX1, curElement + 1);
+                    }
+                    if (curElement >= 1 && (curSeries.size() - 1) - curElement < 1) {
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement - 1).toString()) - direction * 0.5;
+                        curSeries.setX(curX2, curElement - 1);
                     }
                 }
                 curSeries.setX(curX, curElement);
-            }if(measurementUnitDB.equals("Точки и полуточки 1")){
-                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                    curSeries.setX(curX1, curElement+2);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                    curSeries.setX(curX2, curElement-2);
-                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                    curSeries.setX(curX1, curElement+2);
-                }
-                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                        curSeries.setX(curX2, curElement-2);
+            } else if (measurementUnitDB.equals("Точки и полуточки 1")) {
+                if (curElement >= 2 && (curSeries.size() - 1) - curElement >= 2) {
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement + 2).toString()) - direction * 0.5;
+                    curSeries.setX(curX1, curElement + 2);
+                    Number curX2 = Float.parseFloat(curSeries.getX(curElement - 2).toString()) - direction * 0.5;
+                    curSeries.setX(curX2, curElement - 2);
+                } else {
+                    if (curElement < 2 && (curSeries.size() - 1) - curElement >= 2) {
+                        Number curX1 = Float.parseFloat(curSeries.getX(curElement + 2).toString()) - direction * 0.5;
+                        curSeries.setX(curX1, curElement + 2);
+                    }
+                    if (curElement >= 2 && (curSeries.size() - 1) - curElement < 2) {
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement - 2).toString()) - direction * 0.5;
+                        curSeries.setX(curX2, curElement - 2);
                     }
                 }
                 curSeries.setX(curX, curElement);
-            }if(measurementUnitDB.equals("Точки и полуточки 2")){
-                if(curElement>=2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                    curSeries.setX(curX1, curElement+2);
-                    Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                    curSeries.setX(curX2, curElement-2);
-                }else{if(curElement<2 && (curSeries.size()-1)-curElement >= 2){
-                    Number curX1 = Float.parseFloat(curSeries.getX(curElement+2).toString())+0.5;
-                    curSeries.setX(curX1, curElement+2);
-                }
-                    if(curElement>=2 && (curSeries.size()-1)-curElement < 2){
-                        Number curX2 = Float.parseFloat(curSeries.getX(curElement-2).toString())+0.5;
-                        curSeries.setX(curX2, curElement-2);
+            } else if (measurementUnitDB.equals("Точки и полуточки 2")) {
+                if (curElement >= 2 && (curSeries.size() - 1) - curElement >= 2) {
+                    Number curX1 = Float.parseFloat(curSeries.getX(curElement + 2).toString()) - direction * 0.5;
+                    curSeries.setX(curX1, curElement + 2);
+                    Number curX2 = Float.parseFloat(curSeries.getX(curElement - 2).toString()) - direction * 0.5;
+                    curSeries.setX(curX2, curElement - 2);
+                } else {
+                    if (curElement < 2 && (curSeries.size() - 1) - curElement >= 2) {
+                        Number curX1 = Float.parseFloat(curSeries.getX(curElement + 2).toString()) - direction * 0.5;
+                        curSeries.setX(curX1, curElement + 2);
+                    }
+                    if (curElement >= 2 && (curSeries.size() - 1) - curElement < 2) {
+                        Number curX2 = Float.parseFloat(curSeries.getX(curElement - 2).toString()) - direction * 0.5;
+                        curSeries.setX(curX2, curElement - 2);
                     }
                 }
                 curSeries.setX(curX, curElement);
@@ -1633,9 +1578,17 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
         if(count == 0){
             curElements.put(selectedSeriesIndex, -1);
+            pointShiftMap.put(curElement, count);
         }else{
-            curElements.put(selectedSeriesIndex, curElement); // Add the current series to the curElements map
+            curElements.put(selectedSeriesIndex, curElement);
+            if(pointShiftMap.get(curElement)!=null){
+                int currSdvig = pointShiftMap.get(curElement).intValue();
+                pointShiftMap.put(curElement, currSdvig+direction);
+            }else{
+                pointShiftMap.put(curElement, count);
+            }
         }
+
     }
 
 
@@ -1673,5 +1626,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
         plot.redraw();
     }
+
 
 }
