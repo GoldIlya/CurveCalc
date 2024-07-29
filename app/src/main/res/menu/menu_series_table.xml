@@ -12,4 +12,14 @@
         android:title="PDF"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_table"
+        android:title="Общая таблица"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_pivot_table"
+        android:title="Сводная таблица"
+        app:showAsAction="never" />
+
 </menu>

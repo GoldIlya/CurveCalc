@@ -72,6 +72,7 @@ public class SeriesTableActivity extends AppCompatActivity {
 
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
     private Map<Integer, Integer> curElements = new HashMap<>();
+    private Map<Integer, Integer> pointShiftMap = new HashMap<>();
     private String nameZamer;
     private TableLayout seriesTable;
     private float scaleFactor = 1.0f;
@@ -100,11 +101,16 @@ public class SeriesTableActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String seriesListJson = intent.getStringExtra("seriesListJson");
         String curElementsToJson = intent.getStringExtra("curElementsToJson");
+        String pointShiftJson = intent.getStringExtra("pointShiftJson");
         Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
         seriesList = gson.fromJson(seriesListJson, seriesListType);
         Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
         curElements = gson.fromJson(curElementsToJson, curElementsType);
+
+        Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
+        pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
+
         nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
 //        btnExcel = findViewById(R.id.btnExcel);
         fn_permission();
@@ -212,6 +218,7 @@ public class SeriesTableActivity extends AppCompatActivity {
     }
 
     private void createTable(TableLayout tableLayout, List<SimpleXYSeries> seriesList) {
+        tableLayout.removeAllViews();
         // Add table headers
         TableRow headerRow = new TableRow(this);
         TextView xHeader = new TextView(this);
@@ -295,6 +302,71 @@ public class SeriesTableActivity extends AppCompatActivity {
             tableLayout.setPadding(100,100,100,100);
         }
     }
+
+
+
+    private void createPivotTable(TableLayout tableLayout, List<SimpleXYSeries> seriesList, Map<Integer, Integer> pointShiftMap) {
+        tableLayout.removeAllViews();
+        // Add table headers
+        TableRow headerRow = new TableRow(this);
+        TextView xHeader = new TextView(this);
+        xHeader.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
+        xHeader.setPadding(2, 0, 2, 0);
+        xHeader.setText("№");
+        headerRow.addView(xHeader);
+        TextView pointShiftHeader = new TextView(this);
+        pointShiftHeader.setPadding(2, 0, 2, 0);
+        pointShiftHeader.setText("Движение");
+        headerRow.addView(pointShiftHeader);
+        for (SimpleXYSeries series : seriesList) {
+            TextView yHeader = new TextView(this);
+            yHeader.setPadding(2, 0, 2, 0);
+            if (seriesList.indexOf(series) == 0) {
+                yHeader.setText("Промер");
+            } else {
+                yHeader.setText("Шаг " + (seriesList.indexOf(series)));
+            }
+            headerRow.addView(yHeader);
+        }
+        tableLayout.addView(headerRow);
+
+        // Add table rows for each data point in the seriesList
+        int numRows = seriesList.get(0).size();
+        for (int i = 0; i < numRows; i++) {
+            TableRow dataRow = new TableRow(this);
+            TextView yValue = new TextView(this);
+            yValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
+            yValue.setPadding(2, 0, 2, 0);
+            boolean isInteger = (seriesList.get(0).getY(i).floatValue() - Math.floor(seriesList.get(0).getY(i).floatValue())) == 0;
+            if (isInteger) {
+                yValue.setText(String.valueOf(Math.round(seriesList.get(0).getY(i).floatValue())));
+            } else {
+                yValue.setText(" - ");
+            }
+            dataRow.addView(yValue);
+            TextView pointShiftValue = new TextView(this);
+            pointShiftValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
+            pointShiftValue.setPadding(2, 0, 2, 0);
+            Integer pointShift = pointShiftMap.get(i);
+            if (pointShift!= null) {
+                pointShiftValue.setText(String.valueOf(pointShift));
+            } else {
+                pointShiftValue.setText("0");
+            }
+            dataRow.addView(pointShiftValue);
+            for (SimpleXYSeries series : seriesList) {
+                TextView xValue = new TextView(this);
+                xValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
+                xValue.setPadding(2, 0, 2, 0);
+                xValue.setText(String.valueOf(series.getX(i)));
+                dataRow.addView(xValue);
+            }
+            tableLayout.addView(dataRow);
+            tableLayout.setPadding(100,100,100,100);
+        }
+    }
+
+
 
     private SimpleXYSeries calculateDifference(SimpleXYSeries prevSeries, SimpleXYSeries curSeries, int indexCurSeries) {
         SimpleXYSeries differenceSeries = new SimpleXYSeries("Difference");
@@ -483,6 +555,14 @@ public class SeriesTableActivity extends AppCompatActivity {
         }
         if (id == R.id.action_pdf) {
             createPdfAndSave();
+            return true;
+        }
+        if (id == R.id.action_pivot_table) {
+            createPivotTable(seriesTable, seriesList, pointShiftMap);
+            return true;
+        }
+        if (id == R.id.action_table) {
+            createTable(seriesTable, seriesList);
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -382,6 +382,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 seriesSpinner.setAdapter(newSeriesAdapter);
                                 resetCount();
                                 countSeries = 0;
+                                pointShiftMap.clear();
                             }
                         }
                     });
@@ -459,6 +460,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                         newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                         seriesSpinner.setAdapter(newSeriesAdapter);
                                         countSeries = 0;
+                                        pointShiftMap.clear();
                                     }
                                 }
                             });
@@ -518,7 +520,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             editPoint();
+                            pointShiftMap.clear();
                         }
+
                     });
                     builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
                         @Override
@@ -546,6 +550,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     editPoint();
+                                    pointShiftMap.clear();
                                 }
                             });
                             builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -814,8 +819,12 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         Gson gson = new Gson();
                         String seriesListJson = gson.toJson(seriesList);
                         String curElementsToJson = gson.toJson(curElements);
+                        String pointShiftJson = gson.toJson(pointShiftMap);
                         String nameZamer = zamerNameDB.toString();
-                        intent.putExtra("seriesListJson", seriesListJson).putExtra("nameZamer", nameZamer).putExtra("curElementsToJson", curElementsToJson);
+                        intent.putExtra("seriesListJson", seriesListJson)
+                                .putExtra("nameZamer", nameZamer)
+                                .putExtra("curElementsToJson", curElementsToJson)
+                                .putExtra("pointShiftJson", pointShiftJson);
                         startActivity(intent);
                     }
                 });
@@ -1333,6 +1342,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 seriesSpinner.setAdapter(newSeriesAdapter);
                 seriesSpinner.setSelection(seriesList.indexOf(curSeries));
+                pointShiftMap.clear();
             }
         });
         builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
