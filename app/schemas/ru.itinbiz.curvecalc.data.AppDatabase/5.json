@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "7230391c02b9bc83b13cdbd1ff308244",
+    "identityHash": "f3be285eb15ebeef6203de786aa4325c",
     "entities": [
       {
         "tableName": "measurement_table",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `measurementUnit` TEXT, `countPoint` REAL NOT NULL, `countSeries` INTEGER NOT NULL, `seriesListJson` TEXT, `baseMeasurJson` TEXT, `curElementsJson` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `measurementUnit` TEXT, `countPoint` REAL NOT NULL, `countSeries` INTEGER NOT NULL, `seriesListJson` TEXT, `baseMeasurJson` TEXT, `curElementsJson` TEXT, `pointShiftJson` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -55,6 +55,12 @@
             "columnName": "curElementsJson",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "pointShiftJson",
+            "columnName": "pointShiftJson",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -70,7 +76,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7230391c02b9bc83b13cdbd1ff308244')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f3be285eb15ebeef6203de786aa4325c')"
     ]
   }
 }

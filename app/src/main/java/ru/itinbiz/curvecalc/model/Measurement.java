@@ -15,6 +15,7 @@ public class Measurement {
     private String seriesListJson; // Save the seriesList as a JSON string
     private String baseMeasurJson;
     private String curElementsJson; // Save the curElements as a JSON string
+    private String pointShiftJson;
 
     // Getters and setters
 
@@ -65,4 +66,8 @@ public class Measurement {
     public String getCurElementsJson() {return curElementsJson;}
 
     public void setCurElementsJson(String curElementsJson) {this.curElementsJson = curElementsJson;}
+
+    public String getPointShiftJson() {return pointShiftJson;}
+
+    public void setPointShiftJson(String pointShiftJson) {this.pointShiftJson = pointShiftJson;}
 }

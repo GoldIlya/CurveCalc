@@ -6,13 +6,13 @@ import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import ru.itinbiz.curvecalc.model.Measurement;
 
-@Database(entities = {Measurement.class}, version = 5, autoMigrations = {
-        @AutoMigration (from = 4, to = 5)} ,  exportSchema = true)
-
-
+@Database(entities = {Measurement.class}, version = 6, autoMigrations = {
+        @AutoMigration (from = 5, to = 6)} ,  exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
@@ -25,7 +25,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "app_database")
-                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }
@@ -33,3 +32,4 @@ public abstract class AppDatabase extends RoomDatabase {
         return INSTANCE;
     }
 }
+

@@ -6,16 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.androidplot.xy.SimpleXYSeries;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import ru.itinbiz.curvecalc.R;
-import ru.itinbiz.curvecalc.model.PointShift;
 
 
 public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDiff.PointViewHolder> {
@@ -80,7 +75,7 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
 
         boolean isInteger = (dataSet.getY(position).floatValue() - Math.floor(dataSet.getY(position).floatValue())) == 0;
 
-        if(isModeOnePoint){
+
             if(diff!=0.0 && isInteger){
                 holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.green));
                 holder.tvZnach.setTextColor(mCtx.getResources().getColor(R.color.green));
@@ -93,9 +88,6 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
                 holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.blue));
             }
 
-        }else{
-
-        }
 
 
 

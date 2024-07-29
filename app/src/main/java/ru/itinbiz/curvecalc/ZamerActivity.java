@@ -61,7 +61,6 @@ import ru.itinbiz.curvecalc.adapter.PointAdapterForDiff;
 import ru.itinbiz.curvecalc.data.AppDatabase;
 import ru.itinbiz.curvecalc.data.MeasurementDao;
 import ru.itinbiz.curvecalc.model.Measurement;
-import ru.itinbiz.curvecalc.model.PointShift;
 import ru.itinbiz.curvecalc.service.MyLineAndPointFormatter;
 
 public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnItemClickListener, PointAdapterForDiff.OnItemClickListener {
@@ -80,6 +79,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             pointFormat, pointFormatInt, pointFormatDouble;
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
     private Map<Integer, Integer> curElements = new HashMap<>();
+    private Map<Integer, Integer> pointShiftMap = new HashMap<>();
     private int curElement = -1;
     private int count = 0;
     private double countPoint = 1;
@@ -98,12 +98,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private MeasurementDao measurementDao;
     private LiveData<Measurement> lastMeasurement;
     private Measurement measurementDB;
-
     private String measurementUnitDB;
     private Handler handler = new Handler();
     private Handler handler1 = new Handler();
-
-    private Map<Integer, Integer> pointShiftMap = new HashMap<>();
 
 
 
@@ -164,8 +161,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             seriesList = gson.fromJson(measurementDB.getSeriesListJson(), seriesListType);
             Type type = new TypeToken<Map<Integer, Integer>>() {}.getType();
             curElements = gson.fromJson(measurementDB.getCurElementsJson(), type);
+            Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
+            pointShiftMap = gson.fromJson(measurementDB.getPointShiftJson(), type);
             if(curElements == null){
                 curElements = new HashMap<>();
+            }
+            if(pointShiftMap == null){
+                pointShiftMap = new HashMap<>();
             }
             if(seriesList.size()>0){
                 countPoint = measurementDB.getCountPoint();
@@ -194,6 +196,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             seriesList.add(series); // Add the initial series to the list
             if(curElements == null){
                 curElements = new HashMap<>();
+            }
+            if(pointShiftMap == null){
+                pointShiftMap = new HashMap<>();
             }
         }
 
@@ -750,6 +755,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         }
                         countPoint = 1;
                         countSeries = 0;
+                        pointShiftMap.clear();
                         plot.redraw();
                     }
                 });
@@ -791,6 +797,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     ad.show();
 
                 }
+                pointShiftMap.clear();
             }
 
         });
@@ -885,6 +892,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
                 String curElementsJson = gson.toJson(curElements);
+                String pointShiftJson = gson.toJson(pointShiftMap);
+
 
                 Measurement measurement = new Measurement();
                 measurement.setName(zamerNameDB);
@@ -893,6 +902,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 measurement.setMeasurementUnit(measurementUnitDB);
                 measurement.setSeriesListJson(seriesListJson);
                 measurement.setCurElementsJson(curElementsJson);
+                measurement.setPointShiftJson(pointShiftJson);
+
 
                 long insertedId = AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
@@ -942,11 +953,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 Gson gson = new Gson();
                 String seriesListJson = gson.toJson(seriesList);
                 String curElementsJson = gson.toJson(curElements);
+                String pointShiftJson = gson.toJson(pointShiftMap);
 
                 measurementDB.setCountPoint(countPoint);
                 measurementDB.setCountSeries(countSeries);
                 measurementDB.setSeriesListJson(seriesListJson);
                 measurementDB.setCurElementsJson(curElementsJson);
+                measurementDB.setPointShiftJson(pointShiftJson);
 
                 AppDatabase.getDatabase(getApplicationContext())
                         .measurementDao()
@@ -1578,17 +1591,15 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
         if(count == 0){
             curElements.put(selectedSeriesIndex, -1);
-            pointShiftMap.put(curElement, count);
         }else{
             curElements.put(selectedSeriesIndex, curElement);
-            if(pointShiftMap.get(curElement)!=null){
-                int currSdvig = pointShiftMap.get(curElement).intValue();
-                pointShiftMap.put(curElement, currSdvig+direction);
-            }else{
-                pointShiftMap.put(curElement, count);
-            }
         }
-
+        if(pointShiftMap.get(curElement)!=null){
+            int currSdvig = pointShiftMap.get(curElement).intValue();
+            pointShiftMap.put(curElement, currSdvig+direction);
+        }else{
+            pointShiftMap.put(curElement, count);
+        }
     }
 
 
@@ -1600,7 +1611,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
     private void resetChangesList(){
-
         int currentIndex = seriesList.indexOf(curSeries);
         List<SimpleXYSeries> subList = seriesList.subList(currentIndex , seriesList.size());
         subList.clear();
