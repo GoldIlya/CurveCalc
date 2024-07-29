@@ -61,13 +61,13 @@ import ru.itinbiz.curvecalc.adapter.PointAdapterForDiff;
 import ru.itinbiz.curvecalc.data.AppDatabase;
 import ru.itinbiz.curvecalc.data.MeasurementDao;
 import ru.itinbiz.curvecalc.model.Measurement;
+import ru.itinbiz.curvecalc.model.PointShiftKey;
 import ru.itinbiz.curvecalc.service.MyLineAndPointFormatter;
 
 public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnItemClickListener, PointAdapterForDiff.OnItemClickListener {
 
     int measurementIdDb;
     boolean isNew = false;
-    boolean isModeOnePoint = true;
     boolean isModeEnter;
     boolean isClick = false;
     private XYPlot plot;
@@ -117,7 +117,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         seriesSpinner = findViewById(R.id.series_spinner);
         btnEnterVal = findViewById(R.id.btnEnterVal);
         etEnterVal = findViewById(R.id.etEnterVal);
+        etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         valueSet = findViewById(R.id.valueSet);
+        valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         appEdit = findViewById(R.id.appEdit);
         btnPlus = findViewById(R.id.increment_button);
         btnMinus = findViewById(R.id.decrement_button);
@@ -162,7 +164,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             Type type = new TypeToken<Map<Integer, Integer>>() {}.getType();
             curElements = gson.fromJson(measurementDB.getCurElementsJson(), type);
             Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
-            pointShiftMap = gson.fromJson(measurementDB.getPointShiftJson(), type);
+            pointShiftMap = gson.fromJson(measurementDB.getPointShiftJson(), typeShift);
             if(curElements == null){
                 curElements = new HashMap<>();
             }
@@ -382,7 +384,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 seriesSpinner.setAdapter(newSeriesAdapter);
                                 resetCount();
                                 countSeries = 0;
-                                pointShiftMap.clear();
+//                                pointShiftMap.clear();
                             }
                         }
                     });
@@ -416,11 +418,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 if (!imm.isActive(etEnterVal)) {
                     imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
-                }
-                if(isModeEnter){
-                    etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                }else{
-                    etEnterVal.setInputType(TYPE_CLASS_NUMBER);
                 }
             }
         });
@@ -460,7 +457,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                         newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                         seriesSpinner.setAdapter(newSeriesAdapter);
                                         countSeries = 0;
-                                        pointShiftMap.clear();
+//                                        pointShiftMap.clear();
                                     }
                                 }
                             });
@@ -499,11 +496,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if (!imm.isActive(etEnterVal)) {
                     imm.showSoftInput(etEnterVal, InputMethodManager.SHOW_IMPLICIT);
                 }
-                if(isModeEnter){
-                    etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                }else{
-                    etEnterVal.setInputType(TYPE_CLASS_NUMBER);
-                }
                 return consumed;
             }
         });
@@ -520,7 +512,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             editPoint();
-                            pointShiftMap.clear();
+//                            pointShiftMap.clear();
                         }
 
                     });
@@ -550,7 +542,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     editPoint();
-                                    pointShiftMap.clear();
+//                                    pointShiftMap.clear();
                                 }
                             });
                             builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -572,11 +564,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 // Show the numeric keyboard explicitly
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(valueSet, InputMethodManager.SHOW_IMPLICIT);
-                if(isModeEnter){
-                    valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                }else{
-                    valueSet.setInputType(TYPE_CLASS_NUMBER);
-                }
                 return consumed;
 
             }
@@ -802,7 +789,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     ad.show();
 
                 }
-                pointShiftMap.clear();
+//                pointShiftMap.clear();
             }
 
         });
@@ -826,64 +813,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                                 .putExtra("curElementsToJson", curElementsToJson)
                                 .putExtra("pointShiftJson", pointShiftJson);
                         startActivity(intent);
-                    }
-                });
-                builder.setNegativeButton("Выбрать режим", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Inflate the custom layout
-                        View view = LayoutInflater.from(ZamerActivity.this).inflate(R.layout.dialog_input_mode, null);
-
-                        // Get the EditText and RadioGroup from the custom layout
-                        RadioGroup radioGroup = view.findViewById(R.id.radioGroup);
-                        Switch swEnterMinusVal = view.findViewById(R.id.enterMinusVal);
-                        if(!isModeEnter){
-                            swEnterMinusVal.setChecked(false);
-                        }else{
-                            swEnterMinusVal.setChecked(true);
-                        }
-                        // Set the default selection for the RadioGroup
-                        if(isModeOnePoint){
-                            radioGroup.check(R.id.radioBtnOnePoint);
-                        }else{
-                            radioGroup.check(R.id.radioBtnAllPoint);
-                        }
-
-                        // Create the AlertDialog with the custom layout
-                        AlertDialog dialogWithInput = new AlertDialog.Builder(ZamerActivity.this)
-                                .setTitle("Выбрать режим")
-                                .setView(view)
-                                .setCancelable(false)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        int selectedId = radioGroup.getCheckedRadioButtonId();
-                                        RadioButton selectedRadioButton = view.findViewById(selectedId);
-                                        String shiftMode = selectedRadioButton.getText().toString();
-                                        Toast.makeText(ZamerActivity.this, "id режима"+ shiftMode, Toast.LENGTH_SHORT).show();
-                                        if(shiftMode.equals("режим включает возможность сдвига всех точек в шаге")){
-                                            isModeOnePoint = false;
-                                        }else{
-                                            isModeOnePoint = true;
-                                        }
-                                        if(swEnterMinusVal.isChecked()){
-                                            isModeEnter = true;
-                                            etEnterVal.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                                            valueSet.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
-                                        }else{
-                                            isModeEnter = false;
-                                            etEnterVal.setInputType(TYPE_CLASS_NUMBER);
-                                            valueSet.setInputType(TYPE_CLASS_NUMBER);
-                                        }
-
-
-                                    }
-                                })
-                                .setNegativeButton("Cancel", null)
-                                .create();
-
-                        dialogWithInput.show();
                     }
                 });
                 builder.create().show();
@@ -1202,7 +1131,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         PointAdapter pointAdapter;
         PointAdapterForDiff pointAdapterForDiff;
         if(seriesSpinner.getSelectedItemPosition()==0 || seriesList.size() == 1){
-            pointAdapter = new PointAdapter(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this);
+            pointAdapter = new PointAdapter(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, pointShiftMap);
             recyclerView.setAdapter(pointAdapter);
             blockSdvig.setVisibility(View.GONE);
             blockEdit.setVisibility(View.GONE);
@@ -1213,7 +1142,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         }else{
-            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, curElement, isModeOnePoint, pointShiftMap);
+            pointAdapterForDiff = new PointAdapterForDiff(ZamerActivity.this, curSeries, calculateDifference() , ZamerActivity.this, curElement);
             recyclerView.setAdapter(pointAdapterForDiff);
 //            btnShiftMode.setVisibility(View.VISIBLE);
             blockEdit.setVisibility(View.GONE);
@@ -1316,17 +1245,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     }
 
     private void shiftAndReset(int direction) {
-        if (isModeOnePoint) {
-            if (isClick) {
-                resetChangesList();
-                shiftPoint(direction);
-                isClick = false;
-            } else {
-                shiftPoint(direction);
-            }
-        } else {
             shiftPoint(direction);
-        }
     }
 
 
@@ -1342,7 +1261,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 seriesSpinner.setAdapter(newSeriesAdapter);
                 seriesSpinner.setSelection(seriesList.indexOf(curSeries));
-                pointShiftMap.clear();
+//                pointShiftMap.clear();
             }
         });
         builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -1509,14 +1428,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         }
     }
 
-
-
-
-
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            shiftPoint(1);
+            shiftAndReset(1);
             handler.postDelayed(this, 50); // call plusPoint() every 50ms
         }
     };
@@ -1525,7 +1440,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private Runnable runnable1 = new Runnable() {
         @Override
         public void run() {
-            shiftPoint(-1);
+            shiftAndReset(-1);
             handler1.postDelayed(this, 50); // call plusPoint() every 50ms
         }
     };
@@ -1611,6 +1526,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             pointShiftMap.put(curElement, count);
         }
     }
+
+
 
 
     private void hideKeyboard() {

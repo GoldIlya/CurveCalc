@@ -29,14 +29,12 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
     }
 
 
-    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener, int currentIndex, boolean isModeOnePoint, Map<Integer, Integer> pointShiftMap) {
+    public PointAdapterForDiff(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener, int currentIndex) {
         this.mCtx = mCtx;
         this.dataSet = dataSet;
         this.diffSet = diffSet;
         this.onItemClickListener = onItemClickListener;
         this.selectedIndex = currentIndex;
-        this.isModeOnePoint = isModeOnePoint;
-        this.pointShiftMap = pointShiftMap;
     }
 
     @Override
@@ -52,24 +50,10 @@ public class PointAdapterForDiff extends RecyclerView.Adapter<PointAdapterForDif
         String pointX =  String.valueOf(dataSet.getX(position).floatValue());
         String pointY = String.valueOf(resultY);
         Double diff= 0.0;
-
-        if(isModeOnePoint){
-            if(diffSet.size()>0){
-                diff = diffSet.getX(position).doubleValue();
-            }else{
-                diff = 0.0;
-            }
+        if(diffSet.size()>0){
+            diff = diffSet.getX(position).doubleValue();
         }else{
-            if(pointShiftMap!=null){
-                if(pointShiftMap.get(position)!=null){
-                    diff = Double.parseDouble(pointShiftMap.get(position).toString());
-                }else{
-                    diff = 0.0;
-                }
-            }
-            else {
-
-            }
+            diff = 0.0;
         }
 
 
