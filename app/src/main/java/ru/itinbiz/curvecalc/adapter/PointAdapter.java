@@ -1,5 +1,6 @@
 package ru.itinbiz.curvecalc.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.androidplot.xy.SimpleXYSeries;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import ru.itinbiz.curvecalc.R;
 
 
@@ -20,18 +24,20 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     private SimpleXYSeries dataSet, diffSet;
     private OnItemClickListener onItemClickListener;
     private int selectedIndex = -1;
+    private Map<Integer, Map<Integer, Integer>> allShiftMap = new HashMap<>();
 
 
     public interface OnItemClickListener {
-        void onItemClick(String number, Double numberDouble, String value, int index);
+        void onItemClick(String number, Double numberDouble, String value, int index );
     }
 
 
-    public PointAdapter(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener) {
+    public PointAdapter(Context mCtx, SimpleXYSeries dataSet, SimpleXYSeries diffSet, OnItemClickListener onItemClickListener, Map<Integer, Map<Integer, Integer>> allShiftMap) {
         this.mCtx = mCtx;
         this.dataSet = dataSet;
         this.diffSet = diffSet;
         this.onItemClickListener = onItemClickListener;
+        this.allShiftMap = allShiftMap;
     }
 
     @Override
@@ -40,6 +46,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         return new PointViewHolder(view);
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(PointViewHolder holder, int position) {
         int resultY = Math.round(dataSet.getY(position).floatValue());
@@ -78,12 +85,39 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         }
 
 
-        String diff;
-        if(diffSet.size()>0){
-            diff = String.valueOf(diffSet.getX(position).floatValue());
-        }else{
-            diff = "";
+
+
+
+        Double diff = 0.0;
+        if(allShiftMap!=null){
+            if(allShiftMap!=null){
+                int sum = 0;
+                for (Map.Entry<Integer, Map<Integer, Integer>> entry : allShiftMap.entrySet()) {
+                    Map<Integer, Integer> pointShiftMap = entry.getValue();
+                    if (pointShiftMap.containsKey(position)) { // assuming pointIndex1 is always 1
+                        sum += pointShiftMap.get(position);
+                    }
+                }
+                diff = Double.parseDouble(String.valueOf(sum));
+                holder.tvDiff.setText(diff.toString());
+                if(diff > 0.0){
+                    holder.tvDiff.setText("+"+diff.toString());
+                }
+                if(diff != 0.0){
+                    holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.red));
+                }else{
+                    holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.black));
+                }
+            }else{
+                diff = 0.0;
+                holder.tvDiff.setText(diff.toString());
+                holder.tvDiff.setTextColor(mCtx.getResources().getColor(R.color.black));
+            }
         }
+        else {
+
+        }
+
 
         // Highlight the selected item
         if (position == selectedIndex) {
@@ -100,7 +134,9 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
     class PointViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvNumber, tvZnach, tvDiff;
+        TextView tvNumber;
+        TextView tvZnach;
+        TextView tvDiff;
         public PointViewHolder(View itemView) {
 
             super(itemView);

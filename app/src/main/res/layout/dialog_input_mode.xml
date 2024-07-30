@@ -18,17 +18,6 @@
             android:layout_margin="15dp"
             android:text="Режим сдвига точек" />
 
-        <RadioButton
-            android:id="@+id/radioBtnAllPoint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="режим включает возможность сдвига всех точек в шаге" />
-
-        <RadioButton
-            android:id="@+id/radioBtnOnePoint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="режим включает возможность  сдвига только одной точки в шаге" />
 
         <Switch
             android:id="@+id/enterMinusVal"

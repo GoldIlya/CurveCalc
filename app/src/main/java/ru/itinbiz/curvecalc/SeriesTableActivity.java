@@ -134,7 +134,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         constraintLayout.addView(scrollView);
 
         // Create the table
-        createTable(seriesTable, seriesList);
+        createTable(seriesTable, seriesList, pointShiftMap);
 
 //        btnExcel.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -217,7 +217,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         seriesTable.requestLayout();
     }
 
-    private void createTable(TableLayout tableLayout, List<SimpleXYSeries> seriesList) {
+    private void createTable(TableLayout tableLayout, List<SimpleXYSeries> seriesList, Map<Integer, Integer> pointIndexSums) {
         tableLayout.removeAllViews();
         // Add table headers
         TableRow headerRow = new TableRow(this);
@@ -226,6 +226,12 @@ public class SeriesTableActivity extends AppCompatActivity {
         xHeader.setPadding(2, 0, 2, 0);
         xHeader.setText("Номер");
         headerRow.addView(xHeader);
+
+        TextView movementHeader = new TextView(this);
+        movementHeader.setPadding(2, 0, 2, 0);
+        movementHeader.setText("Движение");
+        headerRow.addView(movementHeader);
+
         for (SimpleXYSeries series : seriesList) {
             TextView yHeader = new TextView(this);
             yHeader.setPadding(2, 0, 2, 0);
@@ -236,6 +242,7 @@ public class SeriesTableActivity extends AppCompatActivity {
             }
             headerRow.addView(yHeader);
         }
+
         tableLayout.addView(headerRow);
 
         // Add table rows for each data point in the seriesList
@@ -252,6 +259,23 @@ public class SeriesTableActivity extends AppCompatActivity {
                 yValue.setText(" - ");
             }
             dataRow.addView(yValue);
+
+            TextView movementValue = new TextView(this);
+            movementValue.setBackground(ContextCompat.getDrawable(this, R.drawable.border));
+            movementValue.setPadding(2, 0, 2, 0);
+            Integer movement = pointIndexSums.get(i);
+            if (movement == null) {
+                movementValue.setText("0.0");
+            } else {
+                if(movement > 0){
+                    movementValue.setText("  +"+movement.intValue());
+                }else{
+                    movementValue.setText("  "+movement.intValue());
+                }
+                movementValue.setTextColor(this.getResources().getColor(R.color.red));
+            }
+            dataRow.addView(movementValue);
+
             for (SimpleXYSeries series : seriesList) {
                 int indexSeries = seriesList.indexOf(series);
                 TextView xValue = new TextView(this);
@@ -416,8 +440,10 @@ public class SeriesTableActivity extends AppCompatActivity {
         Row headerRow = sheet.createRow(0);
         Cell xHeader = headerRow.createCell(0);
         xHeader.setCellValue("Номер");
+        Cell movementHeader = headerRow.createCell(1);
+        movementHeader.setCellValue("Движение");
         for (SimpleXYSeries series : seriesList) {
-            Cell yHeader = headerRow.createCell(seriesList.indexOf(series) + 1);
+            Cell yHeader = headerRow.createCell(seriesList.indexOf(series) + 2);
             if (seriesList.indexOf(series) == 0) {
                 yHeader.setCellValue("Промер");
             } else {
@@ -437,12 +463,21 @@ public class SeriesTableActivity extends AppCompatActivity {
                 yValue.setCellValue(" - ");
             }
 
-
-
+            Cell movementValue = dataRow.createCell(1);
+            Integer movement = pointShiftMap.get(i);
+            if (movement == null) {
+                movementValue.setCellValue(0.0);
+            } else {
+                if (movement > 0) {
+                    movementValue.setCellValue("+" + movement);
+                } else {
+                    movementValue.setCellValue(movement);
+                }
+            }
 
             for (SimpleXYSeries series : seriesList) {
                 int indexSeries = seriesList.indexOf(series);
-                Cell xValue = dataRow.createCell(indexSeries + 1);
+                Cell xValue = dataRow.createCell(indexSeries + 2);
                 if (indexSeries > 0) {
                     SimpleXYSeries diff = calculateDifference(seriesList.get(indexSeries - 1), series, indexSeries);
                     Double iDiff = diff.getX(i).doubleValue();
@@ -456,7 +491,7 @@ public class SeriesTableActivity extends AppCompatActivity {
                         // Set the cell style for the x-value cell
 
                         if (isInteger) {
-                           
+
                         } else {
 
                         }
@@ -557,12 +592,8 @@ public class SeriesTableActivity extends AppCompatActivity {
             createPdfAndSave();
             return true;
         }
-        if (id == R.id.action_pivot_table) {
-            createPivotTable(seriesTable, seriesList, pointShiftMap);
-            return true;
-        }
         if (id == R.id.action_table) {
-            createTable(seriesTable, seriesList);
+            createTable(seriesTable, seriesList, pointShiftMap);
             return true;
         }
         return super.onOptionsItemSelected(item);
