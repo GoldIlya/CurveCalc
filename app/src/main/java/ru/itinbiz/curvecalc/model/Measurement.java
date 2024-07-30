@@ -1,5 +1,6 @@
 package ru.itinbiz.curvecalc.model;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -15,6 +16,7 @@ public class Measurement {
     private String seriesListJson; // Save the seriesList as a JSON string
     private String baseMeasurJson;
     private String curElementsJson; // Save the curElements as a JSON string
+    @ColumnInfo(name = "pointShiftJson")
     private String pointShiftJson;
 
     // Getters and setters

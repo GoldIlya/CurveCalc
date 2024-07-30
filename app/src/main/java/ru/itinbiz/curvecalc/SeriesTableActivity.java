@@ -592,10 +592,6 @@ public class SeriesTableActivity extends AppCompatActivity {
             createPdfAndSave();
             return true;
         }
-        if (id == R.id.action_table) {
-            createTable(seriesTable, seriesList, pointShiftMap);
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 

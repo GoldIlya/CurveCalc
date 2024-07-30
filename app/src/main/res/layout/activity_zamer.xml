@@ -312,7 +312,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_weight="4"
                     android:backgroundTint="@color/green"
-                    android:src="@android:drawable/ic_input_add"
+                    android:src="@android:drawable/ic_media_play"
                     android:tint="@color/green"
                     app:fabSize="normal" />
 
