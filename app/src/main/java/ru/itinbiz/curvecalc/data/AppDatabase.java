@@ -12,6 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import ru.itinbiz.curvecalc.model.Measurement;
 
 @Database(entities = {Measurement.class}, version = 6, autoMigrations = {
+        @AutoMigration (from = 4, to = 5),
         @AutoMigration (from = 5, to = 6)} ,  exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -25,7 +26,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "app_database")
-                            .addMigrations(MIGRATION_5_6)
+                            .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
                             .build();
                 }
             }
@@ -38,6 +39,15 @@ public abstract class AppDatabase extends RoomDatabase {
         public void migrate(SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE measurement_table ADD COLUMN pointShiftJson TEXT");
 
+        }
+    };
+
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            // Add your migration logic here, e.g., create new tables, alter existing ones, etc.
+            // For example, let's assume you added a new column to the measurement_table
+            database.execSQL("ALTER TABLE measurement_table ADD COLUMN curElementsJson TEXT");
         }
     };
 }

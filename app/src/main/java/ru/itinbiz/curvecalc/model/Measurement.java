@@ -15,6 +15,7 @@ public class Measurement {
     private int countSeries;
     private String seriesListJson; // Save the seriesList as a JSON string
     private String baseMeasurJson;
+    @ColumnInfo(name = "curElementsJson")
     private String curElementsJson; // Save the curElements as a JSON string
     @ColumnInfo(name = "pointShiftJson")
     private String pointShiftJson;
