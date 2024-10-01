@@ -1404,6 +1404,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 createNewSeriesAndRefresh();
+                int currentIndex = seriesSpinner.getSelectedItemPosition();
+                removeShiftSelectPosition(currentIndex);
             }
         });
         builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
