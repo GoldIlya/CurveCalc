@@ -814,11 +814,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         String curElementsToJson = gson.toJson(curElements);
                         String pointShiftJson = gson.toJson(sumShift);
                         String nameZamer = zamerNameDB.toString();
+                        String measurementUnit = measurementUnitDB;
 
                         intent.putExtra("seriesListJson", seriesListJson)
                                 .putExtra("nameZamer", nameZamer)
                                 .putExtra("curElementsToJson", curElementsToJson)
-                                .putExtra("pointShiftJson", pointShiftJson);
+                                .putExtra("pointShiftJson", pointShiftJson)
+                                .putExtra("measurementUnit", measurementUnit);
                         startActivity(intent);
                     }
                 });

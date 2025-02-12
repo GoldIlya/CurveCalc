@@ -12,5 +12,10 @@
         android:title="PDF"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_json"
+        android:title="JSON"
+        app:showAsAction="never" />
+
 
 </menu>

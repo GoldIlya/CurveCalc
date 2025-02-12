@@ -205,7 +205,7 @@
                         android:layout_height="match_parent"
                         android:orientation="horizontal"
                         android:visibility="gone"
-                        android:weightSum="2">
+                        >
 
                         <TextView
                             android:id="@+id/numberEdit"

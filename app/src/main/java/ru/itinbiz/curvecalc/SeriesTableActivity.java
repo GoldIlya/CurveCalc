@@ -67,7 +67,7 @@ public class SeriesTableActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_SAVE_PDF_DOCUMENT = 101;
 
     private static final int REQUEST_CODE_CREATE_PDF_DOCUMENT = 200 ;
-
+    private static final int REQUEST_CODE_SAVE_JSON = 202;
 
 
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
@@ -112,6 +112,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
 
         nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
+        String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
 //        btnExcel = findViewById(R.id.btnExcel);
         fn_permission();
         // Initialize UI elements
@@ -569,6 +570,35 @@ public class SeriesTableActivity extends AppCompatActivity {
                     document.close();
                 }
             }
+        } else if (requestCode == REQUEST_CODE_SAVE_JSON && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+                     FileOutputStream fos = new FileOutputStream(pfd.getFileDescriptor())) {
+
+                    // Получаем данные из Intent
+                    String seriesListJson = getIntent().getStringExtra("seriesListJson");
+                    String curElementsToJson = getIntent().getStringExtra("curElementsToJson");
+                    String pointShiftJson = getIntent().getStringExtra("pointShiftJson");
+                    String measurementUnit = getIntent().getStringExtra("measurementUnit");
+
+                    // Создаем JSON объект для объединения всех данных
+                    Gson gson = new Gson();
+                    Map<String, String> dataMap = new HashMap<>();
+                    dataMap.put("seriesListJson", seriesListJson);
+                    dataMap.put("curElementsToJson", curElementsToJson);
+                    dataMap.put("pointShiftJson", pointShiftJson);
+                    dataMap.put("measurementUnit", measurementUnit);
+
+                    String combinedJson = gson.toJson(dataMap);
+
+                    // Записываем данные в файл
+                    fos.write(combinedJson.getBytes());
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -590,6 +620,9 @@ public class SeriesTableActivity extends AppCompatActivity {
         }
         if (id == R.id.action_pdf) {
             createPdfAndSave();
+            return true;
+        }if (id == R.id.action_json) {
+            saveDataToJsonFile();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -640,6 +673,34 @@ public class SeriesTableActivity extends AppCompatActivity {
         Canvas c = new Canvas(b);
         v.draw(c);
         return b;
+    }
+
+
+    private void saveDataToJsonFile() {
+        // Получаем данные из Intent
+        String seriesListJson = getIntent().getStringExtra("seriesListJson");
+        String curElementsToJson = getIntent().getStringExtra("curElementsToJson");
+        String pointShiftJson = getIntent().getStringExtra("pointShiftJson");
+        String measurementUnit = getIntent().getStringExtra("measurementUnit");
+
+        // Создаем JSON объект для объединения всех данных
+        Gson gson = new Gson();
+        Map<String, String> dataMap = new HashMap<>();
+        dataMap.put("seriesListJson", seriesListJson);
+        dataMap.put("curElementsToJson", curElementsToJson);
+        dataMap.put("pointShiftJson", pointShiftJson);
+        dataMap.put("measurementUnit", measurementUnit);
+
+        String combinedJson = gson.toJson(dataMap);
+
+        // Создаем Intent для сохранения файла
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, nameZamer +".json");
+
+        // Запускаем Intent для сохранения файла
+        startActivityForResult(intent, REQUEST_CODE_SAVE_JSON);
     }
 
 }
