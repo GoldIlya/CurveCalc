@@ -2,16 +2,20 @@ package ru.itinbiz.curvecalc;
 
 import static android.text.InputType.TYPE_CLASS_NUMBER;
 import static android.view.KeyEvent.KEYCODE_ENTER;
-
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.DashPathEffect;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.text.InputType;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,6 +27,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -30,8 +35,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,7 +56,10 @@ import com.androidplot.xy.XYSeries;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +77,8 @@ import ru.itinbiz.curvecalc.service.MyLineAndPointFormatter;
 
 public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnItemClickListener, PointAdapterForDiff.OnItemClickListener {
 
+    private static final int REQUEST_CODE_LOAD_JSON = 101;
+    private static final int REQUEST_PERMISSIONS = 102;
     int measurementIdDb;
     boolean isNew = false;
     boolean isClick = false;
@@ -103,7 +116,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private String measurementUnitDB;
     private Handler handler = new Handler();
     private Handler handler1 = new Handler();
-
+    private boolean loadfile;
 
 
     @SuppressLint("MissingInflatedId")
@@ -111,7 +124,13 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zamer);
-
+        if(getIntent().getSerializableExtra("loadfile")!= null){
+            loadfile = (boolean) getIntent().getSerializableExtra("loadfile");
+            if(loadfile){
+                checkPermissions();
+                openFilePicker();
+            }
+        }
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
@@ -191,25 +210,34 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
         }else{
             isNew = true;
+            loadfile = (boolean) getIntent().getSerializableExtra("loadfile");
+
             final String zamerName = (String) getIntent().getSerializableExtra("zamerName");
-            final String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
-            measurementUnitDB = measurementUnit;
-            zamerNameDB = zamerName;
-            Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
-            series = new SimpleXYSeries("Замер");
-            seriesList.add(series); // Add the initial series to the list
-            if(curElements == null){
-                curElements = new HashMap<>();
-            }
-            if(allShiftMap == null){
-                allShiftMap = new HashMap<>();
-            }
+
+                final String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
+                measurementUnitDB = measurementUnit;
+                zamerNameDB = zamerName;
+                Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
+
+                series = new SimpleXYSeries("Замер");
+                seriesList.add(series); // Add the initial series to the list
+                if(curElements == null){
+                    curElements = new HashMap<>();
+                }
+                if(allShiftMap == null){
+                    allShiftMap = new HashMap<>();
+                }
         }
 
         countTextView = findViewById(R.id.count_text_view);
 
 
-        curSeries = seriesList.get(0);
+        // Проверка на пустоту списка перед доступом к его элементам
+        if (seriesList.isEmpty()) {
+            series = new SimpleXYSeries("Замер");
+            seriesList.add(series);
+        }
+        curSeries = seriesList.get(0); // Теперь список гарантированно не пуст
 
         // Создаём разные форматы для отображения на графике
         seriesFormat = new MyLineAndPointFormatter(this, R.xml.line_point_formatter_with_labels);
@@ -321,17 +349,23 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         // Add the series to the plot with the formatter
-        if(measurementUnitDB.equals("Точки и полуточки 2")){
+        if(loadfile){
             curSeriesInt = new SimpleXYSeries("1");
             curSeriesDouble = new SimpleXYSeries("1/2");
-            pointAndDoublePoint();
         }else{
-            if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
-                plot.addSeries(curSeries, seriesFormat);
+            if(measurementUnitDB.equals("Точки и полуточки 2")){
+                curSeriesInt = new SimpleXYSeries("1");
+                curSeriesDouble = new SimpleXYSeries("1/2");
+                pointAndDoublePoint();
             }else{
-                plot.addSeries(curSeries, seriesFormatPromer);
+                if(seriesList.size()==1 || seriesSpinner.getSelectedItemPosition()==0 ){
+                    plot.addSeries(curSeries, seriesFormat);
+                }else{
+                    plot.addSeries(curSeries, seriesFormatPromer);
+                }
             }
         }
+
 
         // Set the plot's properties
         plot.setRangeLabel("Y");
@@ -1406,8 +1440,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 createNewSeriesAndRefresh();
-                int currentIndex = seriesSpinner.getSelectedItemPosition();
-                removeShiftSelectPosition(currentIndex);
             }
         });
         builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
@@ -1601,5 +1633,143 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         plot.redraw();
     }
 
+
+    private void updateUIAfterLoadingData() {
+        // Обновляем спиннер
+        String[] newSeriesArray = getSeriesArray();
+        ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, newSeriesArray);
+        newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        seriesSpinner.setAdapter(newSeriesAdapter);
+        seriesSpinner.setSelection(0);
+
+        // Обновляем график
+        plot.clear();
+        if (measurementUnitDB.equals("Точки и полуточки 2")) {
+            pointAndDoublePoint();
+        } else {
+            if (seriesList.size() == 1 || seriesSpinner.getSelectedItemPosition() == 0) {
+                plot.addSeries(curSeries, seriesFormat);
+            } else {
+                plot.addSeries(curSeries, seriesFormatPromer);
+            }
+        }
+        plot.redraw();
+
+        // Обновляем список точек
+        createListPoint();
+
+        // Сбрасываем счётчик
+        resetCount();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_LOAD_JSON && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                loadDataFromJsonFile(uri);
+            }
+        }
+    }
+
+    private void openFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        startActivityForResult(intent, REQUEST_CODE_LOAD_JSON);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Разрешение предоставлено
+            } else {
+                Toast.makeText(this, "Разрешение на чтение файлов не предоставлено", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
+        }
+    }
+
+    private void loadDataFromJsonFile(Uri uri) {
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE); // Показываем ProgressBar
+
+        try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "r");
+             FileInputStream fis = new FileInputStream(pfd.getFileDescriptor())) {
+
+            // Читаем данные из файла
+            byte[] bytes = new byte[(int) pfd.getStatSize()];
+            fis.read(bytes);
+            String jsonString = new String(bytes);
+
+            // Логируем содержимое JSON для отладки
+            Log.d("JSON_CONTENT", jsonString);
+
+            // Парсим основной JSON-объект
+            Gson gson = new Gson();
+            Type mainType = new TypeToken<Map<String, String>>() {}.getType();
+            Map<String, String> dataMap = gson.fromJson(jsonString, mainType);
+
+            // Извлекаем и парсим seriesListJson
+            String seriesListJson = dataMap.get("seriesListJson");
+            Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
+            seriesList = gson.fromJson(seriesListJson, seriesListType);
+
+            // Извлекаем и парсим pointShiftJson
+            String pointShiftJson = dataMap.get("pointShiftJson");
+            Type pointShiftType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+            allShiftMap = gson.fromJson(pointShiftJson, pointShiftType);
+
+            // Извлекаем и парсим curElementsToJson
+            String curElementsJson = dataMap.get("curElementsToJson");
+            Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+            curElements = gson.fromJson(curElementsJson, curElementsType);
+
+            // Извлекаем measurementUnit
+            measurementUnitDB = dataMap.get("measurementUnit");
+
+            // Проверяем и инициализируем переменные, если они null
+            if (curElements == null) {
+                curElements = new HashMap<>();
+            }
+            if (allShiftMap == null) {
+                allShiftMap = new HashMap<>();
+            }
+            if (seriesList == null || seriesList.isEmpty()) {
+                series = new SimpleXYSeries("Замер");
+                seriesList = new ArrayList<>();
+                seriesList.add(series); // Добавляем начальный ряд в список
+            }
+
+            // Обновляем UI
+            String[] newSeriesArray = getSeriesArray();
+            ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, newSeriesArray);
+            newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            seriesSpinner.setAdapter(newSeriesAdapter);
+            seriesSpinner.setSelection(0);
+            Toast.makeText(this, "Хорда " + measurementUnitDB, Toast.LENGTH_SHORT).show();
+
+            // Обновляем UI после загрузки данных
+            updateUIAfterLoadingData();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка при загрузке файла", Toast.LENGTH_SHORT).show();
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка при парсинге JSON", Toast.LENGTH_SHORT).show();
+        } finally {
+            progressBar.setVisibility(View.GONE); // Скрываем ProgressBar
+        }
+    }
 
 }

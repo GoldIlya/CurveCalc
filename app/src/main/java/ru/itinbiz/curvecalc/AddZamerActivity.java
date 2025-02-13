@@ -1,23 +1,41 @@
 package ru.itinbiz.curvecalc;
 
+
+
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.androidplot.xy.SimpleXYSeries;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import ru.itinbiz.curvecalc.adapter.ZamerAdapter;
 import ru.itinbiz.curvecalc.data.AppDatabase;
@@ -25,6 +43,8 @@ import ru.itinbiz.curvecalc.model.Measurement;
 
 public class AddZamerActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_LOAD_JSON = 101;
+    private static final int REQUEST_PERMISSIONS = 102;
     private FloatingActionButton btnAddZamer;
     private RecyclerView recyclerView;
 
@@ -62,15 +82,28 @@ public class AddZamerActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 zamerName = String.valueOf(input.getText());
+                                Boolean loadfile;
                                 int selectedId = radioGroup.getCheckedRadioButtonId();
                                 RadioButton selectedRadioButton = view.findViewById(selectedId);
                                 String measurementUnit = selectedRadioButton.getText().toString();
-                                Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
-                                intent.putExtra("zamerName", zamerName)
-                                        .putExtra("measurementUnit", measurementUnit)
-                                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                finish();
+                                if(measurementUnit.equals("Загрузить из файла")){
+                                    loadfile = true;
+                                    Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
+                                    intent.putExtra("zamerName", zamerName)
+                                            .putExtra("loadfile", loadfile)
+                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                }else{
+                                    loadfile = false;
+                                    Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
+                                    intent.putExtra("zamerName", zamerName)
+                                            .putExtra("measurementUnit", measurementUnit)
+                                            .putExtra("loadfile", loadfile)
+                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                    finish();
+                                }
                             }
                         })
                         .setNegativeButton("Cancel", null)
@@ -79,6 +112,8 @@ public class AddZamerActivity extends AppCompatActivity {
                 dialogWithInput.show();
             }
         });
+
+
 
     }
 
@@ -115,5 +150,6 @@ public class AddZamerActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
 
 }

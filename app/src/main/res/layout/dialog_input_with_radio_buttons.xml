@@ -43,6 +43,12 @@
             android:layout_height="wrap_content"
             android:text="Точки и полуточки 2" />
 
+        <RadioButton
+            android:id="@+id/radioBtnLoadFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Загрузить из файла" />
+
     </RadioGroup>
 
 </LinearLayout>
