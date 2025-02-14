@@ -220,7 +220,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
                 pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
 
-                String nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
+                zamerNameDB = (String) getIntent().getSerializableExtra("nameZamer");
                 String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
                 Double countPointLF = (Double) getIntent().getSerializableExtra("countPointLF");
                 int countSeriesLF = (int) getIntent().getSerializableExtra("countSeriesLF");
@@ -245,6 +245,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 seriesSpinner.setAdapter(newSeriesAdapter);
                 seriesSpinner.setSelection(0);
                 Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
+                saveDataToDatabase();
             } else {
                 final String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
                 measurementUnitDB = measurementUnit;

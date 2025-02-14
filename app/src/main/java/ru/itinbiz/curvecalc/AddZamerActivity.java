@@ -166,10 +166,10 @@ public class AddZamerActivity extends AppCompatActivity {
                 // Передаем объект Measurement в ZamerActivity
                 Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
                 Gson gson = new Gson();
-                String seriesListJson = gson.toJson(measurementLF.getSeriesListJson());
-                String curElementsToJson = gson.toJson(measurementLF.getCurElementsJson());
-                String pointShiftJson = gson.toJson(measurementLF.getPointShiftJson());
-                String nameZamer = measurementLF.getName();
+                String seriesListJson = measurementLF.getSeriesListJson();
+                String curElementsToJson = measurementLF.getCurElementsJson();
+                String pointShiftJson = measurementLF.getPointShiftJson();
+                String nameZamer = zamerName;
                 String measurementUnit = measurementLF.getMeasurementUnit();
                 Double countPointLF = measurementLF.getCountPoint();
                 int countSeriesLF = measurementLF.getCountSeries();
