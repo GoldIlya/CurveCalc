@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -29,9 +30,12 @@ import com.androidplot.xy.SimpleXYSeries;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +62,7 @@ public class AddZamerActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getZamerList();
         btnAddZamer = findViewById(R.id.btnAddZamer);
-
+        checkPermissions();
         btnAddZamer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,12 +92,11 @@ public class AddZamerActivity extends AppCompatActivity {
                                 String measurementUnit = selectedRadioButton.getText().toString();
                                 if(measurementUnit.equals("Загрузить из файла")){
                                     loadfile = true;
-                                    Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
-                                    intent.putExtra("zamerName", zamerName)
-                                            .putExtra("loadfile", loadfile)
-                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                    finish();
+                                    // Открываем файловый диалог для выбора JSON-файла
+                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                                    intent.setType("application/json");
+                                    startActivityForResult(intent, REQUEST_CODE_LOAD_JSON);
                                 }else{
                                     loadfile = false;
                                     Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
@@ -151,5 +154,144 @@ public class AddZamerActivity extends AppCompatActivity {
         finish();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_LOAD_JSON && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                Measurement measurementLF = loadDataFromJsonFile(uri);
+
+                // Передаем объект Measurement в ZamerActivity
+                Intent intent = new Intent(AddZamerActivity.this, ZamerActivity.class);
+                Gson gson = new Gson();
+                String seriesListJson = gson.toJson(measurementLF.getSeriesListJson());
+                String curElementsToJson = gson.toJson(measurementLF.getCurElementsJson());
+                String pointShiftJson = gson.toJson(measurementLF.getPointShiftJson());
+                String nameZamer = measurementLF.getName();
+                String measurementUnit = measurementLF.getMeasurementUnit();
+                Double countPointLF = measurementLF.getCountPoint();
+                int countSeriesLF = measurementLF.getCountSeries();
+                boolean loadfile = true;
+
+                intent.putExtra("seriesListJson", seriesListJson)
+                        .putExtra("nameZamer", nameZamer)
+                        .putExtra("curElementsToJson", curElementsToJson)
+                        .putExtra("pointShiftJson", pointShiftJson)
+                        .putExtra("measurementUnit", measurementUnit)
+                        .putExtra("countPointLF", countPointLF)
+                        .putExtra("countSeriesLF", countSeriesLF)
+                        .putExtra("loadfile", loadfile);
+                startActivity(intent);
+                finish();
+            }
+        }
+
+
+    }
+
+    private Measurement loadDataFromJsonFile(Uri fileUri) {
+        Measurement measurement = new Measurement();
+        try (InputStream inputStream = getContentResolver().openInputStream(fileUri);
+             InputStreamReader reader = new InputStreamReader(inputStream)) {
+
+            // Читаем данные из файла
+            byte[] bytes = new byte[inputStream.available()];
+            inputStream.read(bytes);
+            String jsonString = new String(bytes);
+
+            // Логируем содержимое JSON для отладки
+            Log.d("JSON_CONTENT", jsonString);
+
+            // Парсим основной JSON-объект
+            Gson gson = new Gson();
+            Type mainType = new TypeToken<Map<String, Object>>() {}.getType();
+            Map<String, Object> dataMap = gson.fromJson(jsonString, mainType);
+
+            // Извлекаем и парсим seriesListJson
+            if (dataMap.containsKey("seriesListJson")) {
+                String seriesListJsonString = (String) dataMap.get("seriesListJson");
+
+                // Убираем экранирование и парсим как JSON-массив
+                Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
+                ArrayList<SimpleXYSeries> seriesList = gson.fromJson(seriesListJsonString, seriesListType);
+
+                // Конвертируем обратно в JSON-строку для хранения
+                measurement.setSeriesListJson(gson.toJson(seriesList));
+            }
+
+            // Извлекаем и парсим pointShiftJson
+            if (dataMap.containsKey("pointShiftJson")) {
+                String pointShiftJsonString = (String) dataMap.get("pointShiftJson");
+
+                // Убираем экранирование и парсим как JSON-объект
+                Type pointShiftType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+                Map<Integer, Integer> pointShiftMap = gson.fromJson(pointShiftJsonString, pointShiftType);
+
+                // Конвертируем обратно в JSON-строку для хранения
+                measurement.setPointShiftJson(gson.toJson(pointShiftMap));
+            }
+
+            // Извлекаем и парсим curElementsToJson
+            if (dataMap.containsKey("curElementsToJson")) {
+                String curElementsJsonString = (String) dataMap.get("curElementsToJson");
+
+                // Убираем экранирование и парсим как JSON-объект
+                Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+                Map<Integer, Integer> curElementsMap = gson.fromJson(curElementsJsonString, curElementsType);
+
+                // Конвертируем обратно в JSON-строку для хранения
+                measurement.setCurElementsJson(gson.toJson(curElementsMap));
+            }
+
+            // Извлекаем measurementUnit
+            if (dataMap.containsKey("measurementUnit")) {
+                measurement.setMeasurementUnit((String) dataMap.get("measurementUnit"));
+            }
+
+            // Извлекаем countPointLF
+            if (dataMap.containsKey("countPointLF")) {
+                measurement.setCountPoint(Double.parseDouble(dataMap.get("countPointLF").toString()));
+            }
+
+            // Извлекаем countSeriesLF
+            if (dataMap.containsKey("countSeriesLF")) {
+                measurement.setCountSeries(Integer.parseInt(dataMap.get("countSeriesLF").toString()));
+            }
+
+            // Устанавливаем имя замера
+            measurement.setName(zamerName); // Используем имя замера, введенное пользователем
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка при загрузке файла", Toast.LENGTH_SHORT).show();
+            return null; // или выбрасывайте исключение
+        } catch (JsonSyntaxException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Ошибка при парсинге JSON", Toast.LENGTH_SHORT).show();
+            return null; // или выбрасывайте исключение
+        }
+
+        return measurement;
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Разрешение предоставлено
+            } else {
+                Toast.makeText(this, "Разрешение на чтение файлов не предоставлено", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 }

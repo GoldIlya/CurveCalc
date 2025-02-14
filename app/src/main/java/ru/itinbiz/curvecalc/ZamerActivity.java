@@ -112,11 +112,10 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     private AppDatabase appDatabase;
     private MeasurementDao measurementDao;
     private LiveData<Measurement> lastMeasurement;
-    private Measurement measurementDB;
+    private Measurement measurementDB, measurementLF;
     private String measurementUnitDB;
     private Handler handler = new Handler();
     private Handler handler1 = new Handler();
-    private boolean loadfile;
 
 
     @SuppressLint("MissingInflatedId")
@@ -124,13 +123,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zamer);
-        if(getIntent().getSerializableExtra("loadfile")!= null){
-            loadfile = (boolean) getIntent().getSerializableExtra("loadfile");
-            if(loadfile){
-                checkPermissions();
-                openFilePicker();
-            }
-        }
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
@@ -210,10 +202,50 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
         }else{
             isNew = true;
-            loadfile = (boolean) getIntent().getSerializableExtra("loadfile");
-
             final String zamerName = (String) getIntent().getSerializableExtra("zamerName");
+            Intent intent = getIntent();
+            boolean loadfile = intent.getBooleanExtra("loadfile", false);
 
+            if (loadfile) {
+
+                String seriesListJson = intent.getStringExtra("seriesListJson");
+                String curElementsToJson = intent.getStringExtra("curElementsToJson");
+                String pointShiftJson = intent.getStringExtra("pointShiftJson");
+                Gson gson = new Gson();
+                Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
+                seriesList = gson.fromJson(seriesListJson, seriesListType);
+                Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
+                curElements = gson.fromJson(curElementsToJson, curElementsType);
+
+                Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
+                pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
+
+                String nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
+                String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
+                Double countPointLF = (Double) getIntent().getSerializableExtra("countPointLF");
+                int countSeriesLF = (int) getIntent().getSerializableExtra("countSeriesLF");
+                if(curElements == null){
+                    curElements = new HashMap<>();
+                }
+                if(allShiftMap == null){
+                    allShiftMap = new HashMap<>();
+                }
+                if(seriesList.size()>0){
+                    countPoint = countPointLF;
+                    countSeries = countSeriesLF;
+                    measurementUnitDB = measurementUnit;
+                }else{
+                    series = new SimpleXYSeries("Замер");
+                    seriesList.add(series); // Add the initial series to the list
+                }
+
+                String[] newSeriesArray = getSeriesArray();
+                ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, newSeriesArray);
+                newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                seriesSpinner.setAdapter(newSeriesAdapter);
+                seriesSpinner.setSelection(0);
+                Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
+            } else {
                 final String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
                 measurementUnitDB = measurementUnit;
                 zamerNameDB = zamerName;
@@ -227,6 +259,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if(allShiftMap == null){
                     allShiftMap = new HashMap<>();
                 }
+            }
+
+
         }
 
         countTextView = findViewById(R.id.count_text_view);
@@ -349,10 +384,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
 
         // Add the series to the plot with the formatter
-        if(loadfile){
-            curSeriesInt = new SimpleXYSeries("1");
-            curSeriesDouble = new SimpleXYSeries("1/2");
-        }else{
+
             if(measurementUnitDB.equals("Точки и полуточки 2")){
                 curSeriesInt = new SimpleXYSeries("1");
                 curSeriesDouble = new SimpleXYSeries("1/2");
@@ -364,7 +396,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                     plot.addSeries(curSeries, seriesFormatPromer);
                 }
             }
-        }
+
 
 
         // Set the plot's properties
@@ -849,12 +881,17 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         String pointShiftJson = gson.toJson(sumShift);
                         String nameZamer = zamerNameDB.toString();
                         String measurementUnit = measurementUnitDB;
+                        Double countPointLF = countPoint;
+                        int countSeriesLF = countSeries;
+
 
                         intent.putExtra("seriesListJson", seriesListJson)
                                 .putExtra("nameZamer", nameZamer)
                                 .putExtra("curElementsToJson", curElementsToJson)
                                 .putExtra("pointShiftJson", pointShiftJson)
-                                .putExtra("measurementUnit", measurementUnit);
+                                .putExtra("measurementUnit", measurementUnit)
+                                .putExtra("countPointLF", countPointLF)
+                                .putExtra("countSeriesLF", countSeriesLF);
                         startActivity(intent);
                     }
                 });
@@ -1631,145 +1668,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         }
         plot.redraw();
-    }
-
-
-    private void updateUIAfterLoadingData() {
-        // Обновляем спиннер
-        String[] newSeriesArray = getSeriesArray();
-        ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, newSeriesArray);
-        newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        seriesSpinner.setAdapter(newSeriesAdapter);
-        seriesSpinner.setSelection(0);
-
-        // Обновляем график
-        plot.clear();
-        if (measurementUnitDB.equals("Точки и полуточки 2")) {
-            pointAndDoublePoint();
-        } else {
-            if (seriesList.size() == 1 || seriesSpinner.getSelectedItemPosition() == 0) {
-                plot.addSeries(curSeries, seriesFormat);
-            } else {
-                plot.addSeries(curSeries, seriesFormatPromer);
-            }
-        }
-        plot.redraw();
-
-        // Обновляем список точек
-        createListPoint();
-
-        // Сбрасываем счётчик
-        resetCount();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE_LOAD_JSON && resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                loadDataFromJsonFile(uri);
-            }
-        }
-    }
-
-    private void openFilePicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
-        startActivityForResult(intent, REQUEST_CODE_LOAD_JSON);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSIONS) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Разрешение предоставлено
-            } else {
-                Toast.makeText(this, "Разрешение на чтение файлов не предоставлено", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
-        }
-    }
-
-    private void loadDataFromJsonFile(Uri uri) {
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE); // Показываем ProgressBar
-
-        try (ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "r");
-             FileInputStream fis = new FileInputStream(pfd.getFileDescriptor())) {
-
-            // Читаем данные из файла
-            byte[] bytes = new byte[(int) pfd.getStatSize()];
-            fis.read(bytes);
-            String jsonString = new String(bytes);
-
-            // Логируем содержимое JSON для отладки
-            Log.d("JSON_CONTENT", jsonString);
-
-            // Парсим основной JSON-объект
-            Gson gson = new Gson();
-            Type mainType = new TypeToken<Map<String, String>>() {}.getType();
-            Map<String, String> dataMap = gson.fromJson(jsonString, mainType);
-
-            // Извлекаем и парсим seriesListJson
-            String seriesListJson = dataMap.get("seriesListJson");
-            Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
-            seriesList = gson.fromJson(seriesListJson, seriesListType);
-
-            // Извлекаем и парсим pointShiftJson
-            String pointShiftJson = dataMap.get("pointShiftJson");
-            Type pointShiftType = new TypeToken<Map<Integer, Integer>>() {}.getType();
-            allShiftMap = gson.fromJson(pointShiftJson, pointShiftType);
-
-            // Извлекаем и парсим curElementsToJson
-            String curElementsJson = dataMap.get("curElementsToJson");
-            Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
-            curElements = gson.fromJson(curElementsJson, curElementsType);
-
-            // Извлекаем measurementUnit
-            measurementUnitDB = dataMap.get("measurementUnit");
-
-            // Проверяем и инициализируем переменные, если они null
-            if (curElements == null) {
-                curElements = new HashMap<>();
-            }
-            if (allShiftMap == null) {
-                allShiftMap = new HashMap<>();
-            }
-            if (seriesList == null || seriesList.isEmpty()) {
-                series = new SimpleXYSeries("Замер");
-                seriesList = new ArrayList<>();
-                seriesList.add(series); // Добавляем начальный ряд в список
-            }
-
-            // Обновляем UI
-            String[] newSeriesArray = getSeriesArray();
-            ArrayAdapter<String> newSeriesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, newSeriesArray);
-            newSeriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            seriesSpinner.setAdapter(newSeriesAdapter);
-            seriesSpinner.setSelection(0);
-            Toast.makeText(this, "Хорда " + measurementUnitDB, Toast.LENGTH_SHORT).show();
-
-            // Обновляем UI после загрузки данных
-            updateUIAfterLoadingData();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Ошибка при загрузке файла", Toast.LENGTH_SHORT).show();
-        } catch (JsonSyntaxException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Ошибка при парсинге JSON", Toast.LENGTH_SHORT).show();
-        } finally {
-            progressBar.setVisibility(View.GONE); // Скрываем ProgressBar
-        }
     }
 
 }
