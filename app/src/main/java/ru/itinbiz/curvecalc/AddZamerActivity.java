@@ -169,14 +169,14 @@ public class AddZamerActivity extends AppCompatActivity {
                 String seriesListJson = measurementLF.getSeriesListJson();
                 String curElementsToJson = measurementLF.getCurElementsJson();
                 String pointShiftJson = measurementLF.getPointShiftJson();
-                String nameZamer = zamerName;
+                String nameZamerLF = measurementLF.getName();
                 String measurementUnit = measurementLF.getMeasurementUnit();
                 Double countPointLF = measurementLF.getCountPoint();
                 int countSeriesLF = measurementLF.getCountSeries();
                 boolean loadfile = true;
 
                 intent.putExtra("seriesListJson", seriesListJson)
-                        .putExtra("nameZamer", nameZamer)
+                        .putExtra("nameZamerLF", nameZamerLF)
                         .putExtra("curElementsToJson", curElementsToJson)
                         .putExtra("pointShiftJson", pointShiftJson)
                         .putExtra("measurementUnit", measurementUnit)
@@ -226,8 +226,8 @@ public class AddZamerActivity extends AppCompatActivity {
                 String pointShiftJsonString = (String) dataMap.get("pointShiftJson");
 
                 // Убираем экранирование и парсим как JSON-объект
-                Type pointShiftType = new TypeToken<Map<Integer, Integer>>() {}.getType();
-                Map<Integer, Integer> pointShiftMap = gson.fromJson(pointShiftJsonString, pointShiftType);
+                Type typeShift = new TypeToken<Map<Integer, Map<Integer, Integer>>>() {}.getType();
+                Map<Integer, Map<Integer, Integer>> pointShiftMap = gson.fromJson(pointShiftJsonString, typeShift);
 
                 // Конвертируем обратно в JSON-строку для хранения
                 measurement.setPointShiftJson(gson.toJson(pointShiftMap));
@@ -250,6 +250,15 @@ public class AddZamerActivity extends AppCompatActivity {
                 measurement.setMeasurementUnit((String) dataMap.get("measurementUnit"));
             }
 
+            // Извлекаем nameZamerLF
+            if (dataMap.containsKey("nameZamerLF")) {
+                if(zamerName.isEmpty()){
+                    measurement.setName((String) dataMap.get("nameZamerLF"));
+                }else{
+                    measurement.setName(zamerName);
+                }
+            }
+
             // Извлекаем countPointLF
             if (dataMap.containsKey("countPointLF")) {
                 measurement.setCountPoint(Double.parseDouble(dataMap.get("countPointLF").toString()));
@@ -261,7 +270,7 @@ public class AddZamerActivity extends AppCompatActivity {
             }
 
             // Устанавливаем имя замера
-            measurement.setName(zamerName); // Используем имя замера, введенное пользователем
+            // Используем имя замера, введенное пользователем
 
         } catch (IOException e) {
             e.printStackTrace();

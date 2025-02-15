@@ -41,14 +41,14 @@
                     android:id="@+id/tvDiff"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minWidth="40dp"
-                    android:maxWidth="40dp"
-                    android:text=""
-                    android:maxHeight="28dp"
-                    android:textSize="16dp"
                     android:autoSizeTextType="uniform"
+                    android:background="@drawable/border"
+                    android:maxWidth="50dp"
+                    android:maxHeight="28dp"
+                    android:minWidth="50dp"
                     android:padding="2dp"
-                    android:background="@drawable/border"/>
+                    android:text="9999"
+                    android:textSize="16dp" />
         </LinearLayout>
 
 </RelativeLayout>

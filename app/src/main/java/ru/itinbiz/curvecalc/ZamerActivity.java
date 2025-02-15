@@ -202,27 +202,27 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
         }else{
             isNew = true;
-            final String zamerName = (String) getIntent().getSerializableExtra("zamerName");
+            String zamerName;
             Intent intent = getIntent();
             boolean loadfile = intent.getBooleanExtra("loadfile", false);
 
             if (loadfile) {
-
+                zamerNameDB = (String) getIntent().getSerializableExtra("nameZamerLF");
                 String seriesListJson = intent.getStringExtra("seriesListJson");
                 String curElementsToJson = intent.getStringExtra("curElementsToJson");
                 String pointShiftJson = intent.getStringExtra("pointShiftJson");
                 Gson gson = new Gson();
+                String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
+                Double countPointLF = (Double) getIntent().getSerializableExtra("countPointLF");
                 Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
                 seriesList = gson.fromJson(seriesListJson, seriesListType);
                 Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
                 curElements = gson.fromJson(curElementsToJson, curElementsType);
 
-                Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
-                pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
+                Type typeShift = new TypeToken<Map<Integer, Map<Integer, Integer>>>() {}.getType();
+                allShiftMap = gson.fromJson(pointShiftJson, typeShift);
 
-                zamerNameDB = (String) getIntent().getSerializableExtra("nameZamer");
-                String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
-                Double countPointLF = (Double) getIntent().getSerializableExtra("countPointLF");
+
                 int countSeriesLF = (int) getIntent().getSerializableExtra("countSeriesLF");
                 if(curElements == null){
                     curElements = new HashMap<>();
@@ -247,9 +247,9 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
                 saveDataToDatabase();
             } else {
+                zamerNameDB = (String) getIntent().getSerializableExtra("zamerName");
                 final String measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
                 measurementUnitDB = measurementUnit;
-                zamerNameDB = zamerName;
                 Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
 
                 series = new SimpleXYSeries("Замер");
@@ -879,7 +879,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         Gson gson = new Gson();
                         String seriesListJson = gson.toJson(seriesList);
                         String curElementsToJson = gson.toJson(curElements);
-                        String pointShiftJson = gson.toJson(sumShift);
+                        String pointShiftJson = gson.toJson(allShiftMap);
+                        String pointShiftSumJson = gson.toJson(sumShift);
                         String nameZamer = zamerNameDB.toString();
                         String measurementUnit = measurementUnitDB;
                         Double countPointLF = countPoint;
@@ -889,6 +890,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         intent.putExtra("seriesListJson", seriesListJson)
                                 .putExtra("nameZamer", nameZamer)
                                 .putExtra("curElementsToJson", curElementsToJson)
+                                .putExtra("pointShiftSumJson", pointShiftSumJson)
                                 .putExtra("pointShiftJson", pointShiftJson)
                                 .putExtra("measurementUnit", measurementUnit)
                                 .putExtra("countPointLF", countPointLF)
@@ -928,6 +930,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                         .measurementDao()
                         .insertAndReturnId(measurement);
                 return insertedId;
+
             }
 
 
@@ -963,6 +966,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        isNew = false;
         return -1;
     }
     private void updateMeasurement(final Measurement measurementDB) {

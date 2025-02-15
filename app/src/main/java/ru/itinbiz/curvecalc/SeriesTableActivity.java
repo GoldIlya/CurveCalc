@@ -72,7 +72,8 @@ public class SeriesTableActivity extends AppCompatActivity {
 
     private List<SimpleXYSeries> seriesList = new ArrayList<>();
     private Map<Integer, Integer> curElements = new HashMap<>();
-    private Map<Integer, Integer> pointShiftMap = new HashMap<>();
+    private Map<Integer, Integer> pointShiftSum = new HashMap<>();
+    private Map<Integer, Map<Integer, Integer>> pointShiftMap = new HashMap<>();
     private String nameZamer, measurementUnit;
     private TableLayout seriesTable;
     private float scaleFactor = 1.0f;
@@ -104,14 +105,18 @@ public class SeriesTableActivity extends AppCompatActivity {
         String seriesListJson = intent.getStringExtra("seriesListJson");
         String curElementsToJson = intent.getStringExtra("curElementsToJson");
         String pointShiftJson = intent.getStringExtra("pointShiftJson");
+        String pointShiftSumJson = intent.getStringExtra("pointShiftSumJson");
         Gson gson = new Gson();
         Type seriesListType = new TypeToken<ArrayList<SimpleXYSeries>>() {}.getType();
         seriesList = gson.fromJson(seriesListJson, seriesListType);
         Type curElementsType = new TypeToken<Map<Integer, Integer>>() {}.getType();
         curElements = gson.fromJson(curElementsToJson, curElementsType);
 
-        Type typeShift = new TypeToken<Map<Integer, Integer>>() {}.getType();
+        Type typeShift = new TypeToken<Map<Integer, Map<Integer, Integer>>>() {}.getType();
         pointShiftMap = gson.fromJson(pointShiftJson, typeShift);
+
+        Type typeShiftSum = new TypeToken<Map<Integer, Integer>>() {}.getType();
+        pointShiftSum = gson.fromJson(pointShiftSumJson, typeShiftSum);
 
         nameZamer = (String) getIntent().getSerializableExtra("nameZamer");
         measurementUnit = (String) getIntent().getSerializableExtra("measurementUnit");
@@ -139,7 +144,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         constraintLayout.addView(scrollView);
 
         // Create the table
-        createTable(seriesTable, seriesList, pointShiftMap);
+        createTable(seriesTable, seriesList, pointShiftSum);
 
 //        btnExcel.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -469,7 +474,7 @@ public class SeriesTableActivity extends AppCompatActivity {
             }
 
             Cell movementValue = dataRow.createCell(1);
-            Integer movement = pointShiftMap.get(i);
+            Integer movement = pointShiftSum.get(i);
             if (movement == null) {
                 movementValue.setCellValue(0.0);
             } else {
@@ -587,6 +592,7 @@ public class SeriesTableActivity extends AppCompatActivity {
                     String measurementUnit = getIntent().getStringExtra("measurementUnit");
                     Double countPointLF = countPoint;
                     int countSeriesLF = countSeries;
+                    String nameZamerLF = nameZamer;
 
                     // Создаем JSON объект для объединения всех данных
                     Gson gson = new Gson();
@@ -597,6 +603,7 @@ public class SeriesTableActivity extends AppCompatActivity {
                     dataMap.put("measurementUnit", measurementUnit);
                     dataMap.put("countPointLF", String.valueOf(countPointLF));
                     dataMap.put("countSeriesLF", String.valueOf(countSeriesLF));
+                    dataMap.put("nameZamerLF", String.valueOf(nameZamerLF));
 
                     String combinedJson = gson.toJson(dataMap);
 
@@ -690,6 +697,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         String curElementsToJson = getIntent().getStringExtra("curElementsToJson");
         String pointShiftJson = getIntent().getStringExtra("pointShiftJson");
         String measurementUnit = getIntent().getStringExtra("measurementUnit");
+        String nameZamerLF = nameZamer;
         Double countPointLF = countPoint;
         int countSeriesLF = countSeries;
 
@@ -704,6 +712,7 @@ public class SeriesTableActivity extends AppCompatActivity {
         dataMap.put("measurementUnit", measurementUnit);
         dataMap.put("countPointLF", String.valueOf(countPointLF));
         dataMap.put("countSeriesLF", String.valueOf(countSeriesLF));
+        dataMap.put("nameZamerLF", String.valueOf(nameZamerLF));
 
         String combinedJson = gson.toJson(dataMap);
 
