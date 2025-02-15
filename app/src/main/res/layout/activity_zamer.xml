@@ -267,7 +267,6 @@
                         android:visibility="gone"
                         app:fabSize="normal" />
 
-
                 </LinearLayout>
 
             </LinearLayout>

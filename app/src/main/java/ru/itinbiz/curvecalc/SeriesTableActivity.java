@@ -690,7 +690,6 @@ public class SeriesTableActivity extends AppCompatActivity {
         return b;
     }
 
-
     private void saveDataToJsonFile() {
         // Получаем данные из Intent
         String seriesListJson = getIntent().getStringExtra("seriesListJson");
@@ -700,7 +699,6 @@ public class SeriesTableActivity extends AppCompatActivity {
         String nameZamerLF = nameZamer;
         Double countPointLF = countPoint;
         int countSeriesLF = countSeries;
-
 
 
         // Создаем JSON объект для объединения всех данных

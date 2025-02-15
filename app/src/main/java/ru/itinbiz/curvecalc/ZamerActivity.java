@@ -1359,8 +1359,6 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
         ad.show();
     }
 
-
-
     public void onBackPressed() {
         Intent intent = new Intent(ZamerActivity.this, AddZamerActivity.class);
         startActivity(intent);

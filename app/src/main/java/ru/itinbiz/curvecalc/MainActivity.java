@@ -16,7 +16,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         btnZamer = findViewById(R.id.btnZamer);
         btnInfo = findViewById(R.id.btnInf);
 
