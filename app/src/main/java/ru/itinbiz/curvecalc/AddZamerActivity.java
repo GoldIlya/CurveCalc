@@ -6,10 +6,12 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -189,6 +191,16 @@ public class AddZamerActivity extends AppCompatActivity {
     }
 
     private Measurement loadDataFromJsonFile(Uri fileUri) {
+
+        // Извлекаем имя файла из Uri
+        String fileName = getFileNameFromUri(fileUri);
+        if (fileName != null && fileName.endsWith(".json")) {
+            // Удаляем расширение .json
+            fileName = fileName.substring(0, fileName.length() - 5);
+        }
+
+
+
         Measurement measurement = new Measurement();
         try (InputStream inputStream = getContentResolver().openInputStream(fileUri);
              InputStreamReader reader = new InputStreamReader(inputStream)) {
@@ -249,9 +261,10 @@ public class AddZamerActivity extends AppCompatActivity {
 
             // Извлекаем nameZamerLF
             if (dataMap.containsKey("nameZamerLF")) {
-                if(zamerName.isEmpty()){
-                    measurement.setName((String) dataMap.get("nameZamerLF"));
-                }else{
+                if (zamerName.isEmpty()) {
+                    // Используем имя файла, если zamerName не задан
+                    measurement.setName(fileName);
+                } else {
                     measurement.setName(zamerName);
                 }
             }
@@ -300,4 +313,27 @@ public class AddZamerActivity extends AppCompatActivity {
         }
     }
 
+    // Метод для извлечения имени файла из Uri
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = null;
+        Cursor cursor = null;
+        try {
+            // Запрашиваем данные из Uri
+            cursor = getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) { // Перемещаем курсор на первую позицию
+                // Получаем имя файла из колонки DISPLAY_NAME
+                int displayNameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (displayNameIndex != -1) {
+                    fileName = cursor.getString(displayNameIndex);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close(); // Закрываем курсор
+            }
+        }
+        return fileName;
+    }
 }

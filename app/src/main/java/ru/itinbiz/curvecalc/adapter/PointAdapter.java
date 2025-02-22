@@ -122,9 +122,11 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
 
         // Highlight the selected item
         if (position == selectedIndex) {
-            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
+            holder.tvNumber.setBackgroundColor(mCtx.getResources().getColor(R.color.selected_item_background)); // Set your highlight color
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.white));
         } else {
-            holder.itemView.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
+            holder.tvNumber.setBackgroundColor(mCtx.getResources().getColor(android.R.color.transparent)); // Reset to default color
+            holder.tvNumber.setTextColor(mCtx.getResources().getColor(R.color.black));
         }
     }
 

@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.DashPathEffect;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -79,6 +81,8 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
 
     private static final int REQUEST_CODE_LOAD_JSON = 101;
     private static final int REQUEST_PERMISSIONS = 102;
+    static final String PREFS_NAME = "MyAppPrefs";
+    private static final String PREF_SHOW_DIALOG = "show_dialog";
     int measurementIdDb;
     boolean isNew = false;
     boolean isClick = false;
@@ -123,6 +127,11 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zamer);
+        // Проверяем настройки, нужно ли показывать диалог
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean showDialog = settings.getBoolean(PREF_SHOW_DIALOG, true);
+
+
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(this);
         measurementDao = appDatabase.measurementDao();
@@ -201,7 +210,7 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             Toast.makeText(this, "Хорда "+ measurementUnitDB, Toast.LENGTH_SHORT).show();
 
         }else{
-            isNew = true;
+
             String zamerName;
             Intent intent = getIntent();
             boolean loadfile = intent.getBooleanExtra("loadfile", false);
@@ -260,13 +269,16 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
                 if(allShiftMap == null){
                     allShiftMap = new HashMap<>();
                 }
+                saveDataToDatabase();
             }
 
 
         }
 
         countTextView = findViewById(R.id.count_text_view);
-
+        if (showDialog) {
+            showInfoDialog();
+        }
 
         // Проверка на пустоту списка перед доступом к его элементам
         if (seriesList.isEmpty()) {
@@ -1671,6 +1683,65 @@ public class ZamerActivity extends AppCompatActivity implements PointAdapter.OnI
             }
         }
         plot.redraw();
+    }
+
+
+    private void showInfoDialog() {
+        // Проверяем, нужно ли показывать диалог для текущего метода
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean showDialog = settings.getBoolean(getDialogPreferenceKey(measurementUnitDB), true);
+
+        if (!showDialog) {
+            return; // Если диалог показывать не нужно, выходим из метода
+        }
+
+        // Создаем диалог
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Устанавливаем заголовок и сообщение в зависимости от метода
+        switch (measurementUnitDB) {
+            case "Точки":
+                builder.setTitle("Метод \"Точки\"");
+                builder.setMessage("Кривой участок пути разбивается на 10 метровые отрезки, для измерений используется 20 метровый шнур. Одна сплошная линия графика (зелёного цвета) проходит только по точкам.");
+                break;
+
+            case "Точки и полуточки 1":
+                builder.setTitle("Метод \"Точки и полуточки 1\"");
+                builder.setMessage("Кривой участок пути разбивается на 5 метровые отрезки, для измерений используется 20 метровый шнур. Одна сплошная линия графика (зелёного цвета), проходит по точкам и полуточкам одновременно.");
+                break;
+
+            case "Точки и полуточки 2":
+                builder.setTitle("Метод \"Точки и полуточки 2\"");
+                builder.setMessage("Кривой участок пути разбивается на 5 метровые отрезки, для измерений используется 20 метровый шнур. Две линии графика проходят отдельно по точкам (сплошная линия зелёного цвета) и отдельно по полуточкам (пунктирная линия синего цвета).");
+                break;
+
+            default:
+                return; // Если метод неизвестен, выходим из метода
+        }
+
+        // Добавляем CheckBox
+        final CheckBox checkBox = new CheckBox(this);
+        checkBox.setText("Показывать это окно в следующий раз");
+        checkBox.setChecked(true); // По умолчанию окно будет показываться
+        builder.setView(checkBox);
+
+        // Устанавливаем кнопку "ОК"
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            // Сохраняем настройки для текущего метода
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(getDialogPreferenceKey(measurementUnitDB), checkBox.isChecked());
+            editor.apply();
+
+            Toast.makeText(ZamerActivity.this, "Настройки сохранены", Toast.LENGTH_SHORT).show();
+        });
+
+        // Показываем диалог
+        builder.create().show();
+    }
+
+    // Метод для получения ключа настроек для конкретного метода
+    private String getDialogPreferenceKey(String method) {
+        return "show_dialog_" + method;
     }
 
 }
